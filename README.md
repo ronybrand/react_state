@@ -8,8 +8,6 @@
 CRUD for Brazilian federative units (states) — abbreviation, name, and
 created/updated timestamps — consuming a REST API at `/api/estado`.
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/ronybrand/react_state)
-
 ## Screenshots
 
 <img src="docs/screenshot-state-list.png" alt="States list" width="500" />
@@ -32,16 +30,23 @@ created/updated timestamps — consuming a REST API at `/api/estado`.
 src/
 ├── pages/               # StateList, CreateState, EditState (routes)
 ├── shared/
-│   ├── StateForm/         # create/edit form (React Hook Form)
-│   ├── ErrorMessage/       # error alert (role="alert") + useErrorMessage hook
-│   ├── Spinner/              # loading indicator (role="status")
-│   ├── Icon/                  # SVG icons centralized by name
-│   └── RouteError/             # render-error fallback per route
-├── hooks/                # TanStack Query hooks (list, get, create, update, delete)
+│   ├── Layout/             # app shell: title bar + <Outlet/> + Footer
+│   ├── Footer/              # FE/BE build info, hides silently on failure
+│   ├── StateForm/            # create/edit form (React Hook Form)
+│   ├── ErrorMessage/          # error alert (role="alert") + useErrorMessage hook
+│   ├── Spinner/                 # loading indicator (role="status")
+│   ├── Icon/                     # SVG icons centralized by name
+│   └── RouteError/                # render-error fallback per route
+├── hooks/                # TanStack Query hooks (list, get, create, update, delete,
+│                            frontend/backend version for the footer)
 ├── lib/                  # httpClient (axios + interceptors), error extractors, formatDate
-├── interfaces/           # State / NewState domain types
-├── services/             # stateService (HTTP calls) + stateApiMapper (wire <-> domain)
-└── router.tsx              # routes with lazy loading
+├── interfaces/           # State / NewState / FrontendVersion / BackendInfo domain types
+├── services/             # stateService + stateApiMapper (wire <-> domain), infoService
+└── router.tsx              # routes with lazy loading, wrapped in Layout
+
+scripts/
+└── generate-version.mjs  # writes public/version.json (commit + build date) on build,
+                             read by the footer to show the deployed frontend version
 ```
 
 ### Conventions
@@ -98,8 +103,12 @@ Live at **[react-state-flax.vercel.app](https://react-state-flax.vercel.app/)**.
 live backend, the same origin-proxy pattern used in development
 (`vite.config.ts`) — the browser only ever talks to the deployment's own
 origin, so it avoids CORS entirely (the backend only allows its own
-CloudFront origin). Click "Deploy with Vercel" above, or run
-`npx vercel --prod` from a Vercel-linked checkout.
+CloudFront origin). Run `npx vercel --prod` from a Vercel-linked checkout.
+
+There's no one-click "Deploy with Vercel" button: `vercel.json` points
+`/api/*` at this project's own backend, so a clone deployed elsewhere
+would render fine but every API call would fail (that backend's CORS only
+allows its own origin).
 
 ## Lint and formatting
 
