@@ -6,6 +6,13 @@
 CRUD for Brazilian federative units (states) — abbreviation, name, and
 created/updated timestamps — consuming a REST API at `/api/estado`.
 
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/ronybrand/react_estado)
+
+## Screenshots
+
+<img src="docs/screenshot-state-list.png" alt="States list" width="500" />
+<img src="docs/screenshot-create-state.png" alt="Create state form" width="360" />
+
 ## Stack
 
 - [React 19](https://react.dev/) + TypeScript (strict) + [Vite](https://vite.dev/)
@@ -81,6 +88,15 @@ npm run build
 ```
 
 Outputs the build artifacts to `dist/`.
+
+## Deployment
+
+`vercel.json` deploys the app as a static SPA and rewrites `/api/*` to the
+live backend, the same same-origin-proxy pattern used in development
+(`vite.config.ts`) — the browser only ever talks to the deployment's own
+origin, so it avoids CORS entirely (the backend only allows its own
+CloudFront origin). Click "Deploy with Vercel" above, or run
+`npx vercel --prod` from a Vercel-linked checkout.
 
 ## Lint and formatting
 
