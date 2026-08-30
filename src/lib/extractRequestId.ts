@@ -1,12 +1,12 @@
 import { isAxiosError } from 'axios';
 
-// O backend só ecoa UUID válido - mas o front não deveria confiar cegamente
-// nisso: um proxy no meio pode devolver outra coisa num erro de gateway
-// antes de chegar na app. Validar formato aqui evita exibir pro usuário
-// algo que não é realmente um ID de correlação.
+// The backend only ever echoes a valid UUID - but the client shouldn't blindly
+// trust that either: a proxy in between could return something else on a
+// gateway error before it reaches the app. Validating the format here avoids
+// showing the user something that isn't really a correlation id.
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-export function extraiRequestIdErro(error: unknown): string | null {
+export function extractRequestId(error: unknown): string | null {
   if (!isAxiosError(error)) {
     return null;
   }

@@ -14,11 +14,11 @@ export const httpClient = axios.create({
   timeout: TIMEOUT_MS,
 });
 
-// Gerado uma vez por ação lógica do usuário, não por tentativa de rede - o
-// interceptor de retry reenvia o mesmo config pelo client, o que passa de
-// novo por este interceptor; só gera um id novo se ainda não houver um,
-// para que as até RETRY_COUNT tentativas de um mesmo GET correlacionem como
-// uma única ação nos logs do backend, não eventos desconexos.
+// Generated once per logical user action, not per network attempt - the
+// retry interceptor resends the same config through the client, which goes
+// through this interceptor again; only generate a new id when there isn't
+// one yet, so that up to RETRY_COUNT attempts of the same GET correlate as
+// a single action in the backend logs, not disconnected events.
 httpClient.interceptors.request.use((config) => {
   if (!config.headers.has(REQUEST_ID_HEADER)) {
     config.headers.set(REQUEST_ID_HEADER, crypto.randomUUID());

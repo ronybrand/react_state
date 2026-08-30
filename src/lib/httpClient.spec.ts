@@ -12,52 +12,52 @@ describe('httpClient', () => {
     mock.restore();
   });
 
-  it('envia um X-Request-Id (UUID) em toda requisição', async () => {
-    mock.onGet('/estado/').reply((config) => {
+  it('sends an X-Request-Id (UUID) on every request', async () => {
+    mock.onGet('/state/').reply((config) => {
       expect(config.headers?.[REQUEST_ID_HEADER]).toMatch(
         /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
       );
       return [200, []];
     });
 
-    await httpClient.get('/estado/');
+    await httpClient.get('/state/');
   });
 
-  it('mantém o mesmo X-Request-Id entre as tentativas de retry de um GET', async () => {
+  it('keeps the same X-Request-Id across retry attempts of a GET', async () => {
     const requestIds: unknown[] = [];
-    mock.onGet('/estado/').reply((config) => {
+    mock.onGet('/state/').reply((config) => {
       requestIds.push(config.headers?.[REQUEST_ID_HEADER]);
       return [500];
     });
 
-    await expect(httpClient.get('/estado/')).rejects.toThrow();
+    await expect(httpClient.get('/state/')).rejects.toThrow();
 
     expect(requestIds).toHaveLength(3);
     expect(new Set(requestIds).size).toBe(1);
   });
 
-  it('reenvia um GET que falha até RETRY_COUNT vezes', async () => {
-    let tentativas = 0;
-    mock.onGet('/estado/').reply(() => {
-      tentativas++;
-      return tentativas <= 2 ? [500] : [200, []];
+  it('resends a failing GET up to RETRY_COUNT times', async () => {
+    let attempts = 0;
+    mock.onGet('/state/').reply(() => {
+      attempts++;
+      return attempts <= 2 ? [500] : [200, []];
     });
 
-    const response = await httpClient.get('/estado/');
+    const response = await httpClient.get('/state/');
 
     expect(response.status).toBe(200);
-    expect(tentativas).toBe(3);
+    expect(attempts).toBe(3);
   });
 
-  it('não reenvia um POST que falha', async () => {
-    let tentativas = 0;
-    mock.onPost('/estado/').reply(() => {
-      tentativas++;
+  it('does not resend a failing POST', async () => {
+    let attempts = 0;
+    mock.onPost('/state/').reply(() => {
+      attempts++;
       return [500];
     });
 
-    await expect(httpClient.post('/estado/', {})).rejects.toThrow();
+    await expect(httpClient.post('/state/', {})).rejects.toThrow();
 
-    expect(tentativas).toBe(1);
+    expect(attempts).toBe(1);
   });
 });
