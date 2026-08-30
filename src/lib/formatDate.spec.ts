@@ -10,4 +10,9 @@ describe('formatDate', () => {
 
     expect(result.startsWith('03/20/2024') || result.startsWith('03/19/2024')).toBe(true);
   });
+
+  it('returns a dash for a null or undefined date instead of the epoch', () => {
+    expect(formatDate(null)).toBe('-');
+    expect(formatDate(undefined)).toBe('-');
+  });
 });

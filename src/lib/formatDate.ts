@@ -8,6 +8,9 @@ const formatter = new Intl.DateTimeFormat('en-US', {
   hour12: false,
 });
 
-export function formatDate(iso: string): string {
+export function formatDate(iso: string | null | undefined): string {
+  if (!iso) {
+    return '-';
+  }
   return formatter.format(new Date(iso));
 }

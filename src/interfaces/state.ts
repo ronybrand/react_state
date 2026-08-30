@@ -5,7 +5,7 @@ export interface State {
   name: string;
   abbreviation: string;
   createdAt: string;
-  updatedAt: string;
+  updatedAt: string | null;
 }
 
 export const newStateSchema = z.object({

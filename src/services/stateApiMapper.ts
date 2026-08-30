@@ -8,7 +8,7 @@ export interface StateApiDto {
   nome: string;
   sigla: string;
   dataHoraCadastro: string;
-  dataHoraUltimaAtualizacao: string;
+  dataHoraUltimaAtualizacao: string | null;
 }
 
 export type NewStateApiDto = Pick<StateApiDto, 'nome' | 'sigla'>;
