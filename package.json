@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prebuild": "node scripts/generate-version.mjs",
     "build": "tsc -b && vite build",
     "test": "vitest",
     "test:coverage": "vitest run --coverage",
