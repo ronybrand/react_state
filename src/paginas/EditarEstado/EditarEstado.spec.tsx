@@ -13,9 +13,10 @@ vi.mock('../../services/estadoService', () => ({
 }));
 
 const mockNavigate = vi.hoisted(() => vi.fn());
+const mockUseParams = vi.hoisted(() => vi.fn(() => ({ id: '1' })));
 vi.mock('react-router', async (importOriginal) => {
   const actual = await importOriginal<typeof import('react-router')>();
-  return { ...actual, useNavigate: () => mockNavigate, useParams: () => ({ id: '1' }) };
+  return { ...actual, useNavigate: () => mockNavigate, useParams: mockUseParams };
 });
 
 const estado: Estado = {
@@ -31,6 +32,7 @@ describe('EditarEstado', () => {
     vi.mocked(estadoService.buscar).mockReset();
     vi.mocked(estadoService.atualizar).mockReset();
     mockNavigate.mockReset();
+    mockUseParams.mockReturnValue({ id: '1' });
   });
 
   it('preenche o form assim que o estado chega de forma assíncrona', async () => {
@@ -70,5 +72,14 @@ describe('EditarEstado', () => {
     renderComProviders(<EditarEstado />);
 
     expect(await screen.findByText('Falha ao buscar estado.')).toBeInTheDocument();
+  });
+
+  it('mostra erro e não busca quando o id da rota é inválido', async () => {
+    mockUseParams.mockReturnValue({ id: 'abc' });
+
+    renderComProviders(<EditarEstado />);
+
+    expect(await screen.findByText('Estado inválido.')).toBeInTheDocument();
+    expect(estadoService.buscar).not.toHaveBeenCalled();
   });
 });

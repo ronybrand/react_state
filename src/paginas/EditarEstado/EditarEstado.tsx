@@ -14,19 +14,29 @@ export function EditarEstado() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const estadoId = Number(id);
+  const idValido = id !== undefined && Number.isInteger(estadoId) && estadoId > 0;
 
-  const { data: estado, isLoading, isError, error: erroCarregamento } = useEstado(estadoId);
+  const {
+    data: estado,
+    isLoading,
+    isError,
+    error: erroCarregamento,
+  } = useEstado(estadoId, { enabled: idValido });
   const atualizarEstado = useAtualizarEstado();
   const { error, requestId, setError } = useErrorMsg();
 
   useEffect(() => {
+    if (!idValido) {
+      setError('Estado inválido.');
+      return;
+    }
     if (isError) {
       setError(
         extraiMensagemErro(erroCarregamento, 'Falha ao buscar estado.'),
         extraiRequestIdErro(erroCarregamento),
       );
     }
-  }, [isError, erroCarregamento, setError]);
+  }, [idValido, isError, erroCarregamento, setError]);
 
   function handleEnviar(dados: NovoEstado) {
     if (!estado) {
@@ -47,7 +57,7 @@ export function EditarEstado() {
     <div className="mx-auto max-w-md p-4">
       <h1 className="font-display mb-4 text-xl font-semibold">Editar estado</h1>
       <ErrorMsg error={error} requestId={requestId} />
-      {isLoading && <Spinner />}
+      {idValido && isLoading && <Spinner />}
       {estado && (
         <FormEstado
           valoresIniciais={{ sigla: estado.sigla, nome: estado.nome }}
