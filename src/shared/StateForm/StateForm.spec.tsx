@@ -1,66 +1,66 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { FormEstado } from './FormEstado';
+import { StateForm } from './StateForm';
 
-describe('FormEstado', () => {
-  it('mantém o botão de salvar desabilitado enquanto o form é inválido', () => {
-    render(<FormEstado onEnviar={vi.fn()} />);
+describe('StateForm', () => {
+  it('keeps the save button disabled while the form is invalid', () => {
+    render(<StateForm onSubmitState={vi.fn()} />);
 
-    expect(screen.getByRole('button', { name: 'Salvar' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
   });
 
-  it('habilita o botão de salvar quando sigla e nome são válidos', async () => {
+  it('enables the save button when abbreviation and name are valid', async () => {
     const user = userEvent.setup();
-    render(<FormEstado onEnviar={vi.fn()} />);
+    render(<StateForm onSubmitState={vi.fn()} />);
 
-    await user.type(screen.getByLabelText('Sigla'), 'SP');
-    await user.type(screen.getByLabelText('Nome'), 'São Paulo');
+    await user.type(screen.getByLabelText('Abbreviation'), 'SP');
+    await user.type(screen.getByLabelText('Name'), 'São Paulo');
     await user.tab();
 
-    expect(screen.getByRole('button', { name: 'Salvar' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Save' })).toBeEnabled();
   });
 
-  it('marca a sigla como inválida e associa a mensagem de erro via aria-describedby', async () => {
+  it('marks the abbreviation as invalid and links the error message via aria-describedby', async () => {
     const user = userEvent.setup();
-    render(<FormEstado onEnviar={vi.fn()} />);
+    render(<StateForm onSubmitState={vi.fn()} />);
 
-    const sigla = screen.getByLabelText('Sigla');
-    await user.click(sigla);
+    const abbreviation = screen.getByLabelText('Abbreviation');
+    await user.click(abbreviation);
     await user.tab();
 
-    expect(sigla).toHaveAttribute('aria-invalid', 'true');
-    expect(sigla).toHaveAttribute('aria-describedby', 'sigla-erro');
-    expect(screen.getByText('Digite a sigla do estado.')).toBeInTheDocument();
+    expect(abbreviation).toHaveAttribute('aria-invalid', 'true');
+    expect(abbreviation).toHaveAttribute('aria-describedby', 'abbreviation-error');
+    expect(screen.getByText('Enter the state abbreviation.')).toBeInTheDocument();
   });
 
-  it('mantém o botão desabilitado quando a prop desabilitado é true, mesmo com o form válido', async () => {
+  it('keeps the button disabled when the disabled prop is true, even with a valid form', async () => {
     const user = userEvent.setup();
     render(
-      <FormEstado
-        valoresIniciais={{ sigla: 'SP', nome: 'São Paulo' }}
-        desabilitado
-        onEnviar={vi.fn()}
+      <StateForm
+        initialValues={{ abbreviation: 'SP', name: 'São Paulo' }}
+        disabled
+        onSubmitState={vi.fn()}
       />,
     );
 
-    await user.click(screen.getByLabelText('Nome'));
+    await user.click(screen.getByLabelText('Name'));
     await user.tab();
 
-    expect(screen.getByRole('button', { name: 'Salvar' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
   });
 
-  it('chama onEnviar com os dados do form ao submeter', async () => {
+  it('calls onSubmitState with the form data on submit', async () => {
     const user = userEvent.setup();
-    const onEnviar = vi.fn();
-    render(<FormEstado onEnviar={onEnviar} />);
+    const onSubmitState = vi.fn();
+    render(<StateForm onSubmitState={onSubmitState} />);
 
-    await user.type(screen.getByLabelText('Sigla'), 'RJ');
-    await user.type(screen.getByLabelText('Nome'), 'Rio de Janeiro');
+    await user.type(screen.getByLabelText('Abbreviation'), 'RJ');
+    await user.type(screen.getByLabelText('Name'), 'Rio de Janeiro');
     await user.tab();
-    await user.click(screen.getByRole('button', { name: 'Salvar' }));
+    await user.click(screen.getByRole('button', { name: 'Save' }));
 
-    expect(onEnviar).toHaveBeenCalledWith(
-      { sigla: 'RJ', nome: 'Rio de Janeiro' },
+    expect(onSubmitState).toHaveBeenCalledWith(
+      { abbreviation: 'RJ', name: 'Rio de Janeiro' },
       expect.anything(),
     );
   });
