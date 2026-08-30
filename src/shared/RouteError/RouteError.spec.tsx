@@ -1,21 +1,21 @@
 import { render, screen } from '@testing-library/react';
 import { createMemoryRouter, RouterProvider } from 'react-router';
-import { RotaErro } from './RotaErro';
+import { RouteError } from './RouteError';
 
-function ComponenteComErro(): never {
-  throw new Error('falha de renderização');
+function ComponentThatThrows(): never {
+  throw new Error('render failure');
 }
 
-describe('RotaErro', () => {
-  it('mostra mensagem de erro e link para o início quando a rota lança um erro', async () => {
+describe('RouteError', () => {
+  it('shows an error message and a link back to home when the route throws', async () => {
     const router = createMemoryRouter(
-      [{ path: '/', element: <ComponenteComErro />, errorElement: <RotaErro /> }],
+      [{ path: '/', element: <ComponentThatThrows />, errorElement: <RouteError /> }],
       { initialEntries: ['/'] },
     );
 
     render(<RouterProvider router={router} />);
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('Algo deu errado');
-    expect(screen.getByRole('link', { name: 'Voltar para o início' })).toHaveAttribute('href', '/');
+    expect(await screen.findByRole('alert')).toHaveTextContent('Something went wrong');
+    expect(screen.getByRole('link', { name: 'Back to home' })).toHaveAttribute('href', '/');
   });
 });

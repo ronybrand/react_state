@@ -1,20 +1,20 @@
 import { Link, useRouteError } from 'react-router';
 
-export function RotaErro() {
-  const erro = useRouteError();
+export function RouteError() {
+  const error = useRouteError();
 
   if (import.meta.env.DEV) {
-    console.error(erro);
+    console.error(error);
   }
 
   return (
     <div className="mx-auto max-w-md p-4" role="alert">
-      <h1 className="font-display mb-2 text-xl font-semibold">Algo deu errado</h1>
+      <h1 className="font-display mb-2 text-xl font-semibold">Something went wrong</h1>
       <p className="text-gray-600">
-        Ocorreu um erro inesperado ao carregar esta página. Tente voltar para o início.
+        An unexpected error occurred while loading this page. Try going back to the home page.
       </p>
       <Link to="/" className="text-brand mt-4 inline-block underline">
-        Voltar para o início
+        Back to home
       </Link>
     </div>
   );

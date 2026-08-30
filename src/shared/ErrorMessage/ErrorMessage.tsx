@@ -1,9 +1,9 @@
-interface ErrorMsgProps {
+interface ErrorMessageProps {
   error: string | null;
   requestId: string | null;
 }
 
-export function ErrorMsg({ error, requestId }: ErrorMsgProps) {
+export function ErrorMessage({ error, requestId }: ErrorMessageProps) {
   if (!error) {
     return null;
   }
@@ -15,9 +15,7 @@ export function ErrorMsg({ error, requestId }: ErrorMsgProps) {
       className="border-danger bg-danger/10 text-danger mb-4 rounded border px-4 py-3"
     >
       {error}
-      {requestId && (
-        <small className="mt-1 block text-gray-500">ID de referência: {requestId}</small>
-      )}
+      {requestId && <small className="mt-1 block text-gray-500">Reference ID: {requestId}</small>}
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react';
-import { useErrorMsg } from './useErrorMsg';
+import { useErrorMessage } from './useErrorMessage';
 
-describe('useErrorMsg', () => {
+describe('useErrorMessage', () => {
   beforeEach(() => {
     vi.useFakeTimers();
   });
@@ -10,41 +10,41 @@ describe('useErrorMsg', () => {
     vi.useRealTimers();
   });
 
-  it('começa sem erro nem requestId', () => {
-    const { result } = renderHook(() => useErrorMsg());
+  it('starts with no error and no requestId', () => {
+    const { result } = renderHook(() => useErrorMessage());
 
     expect(result.current.error).toBeNull();
     expect(result.current.requestId).toBeNull();
   });
 
-  it('define mensagem e requestId ao chamar setError', () => {
-    const { result } = renderHook(() => useErrorMsg());
+  it('sets message and requestId when setError is called', () => {
+    const { result } = renderHook(() => useErrorMessage());
 
-    act(() => result.current.setError('Falha ao salvar.', 'req-1'));
+    act(() => result.current.setError('Failed to save.', 'req-1'));
 
-    expect(result.current.error).toBe('Falha ao salvar.');
+    expect(result.current.error).toBe('Failed to save.');
     expect(result.current.requestId).toBe('req-1');
   });
 
-  it('limpa o erro automaticamente após a duração padrão de 5s', () => {
-    const { result } = renderHook(() => useErrorMsg());
+  it('clears the error automatically after the default 5s duration', () => {
+    const { result } = renderHook(() => useErrorMessage());
 
-    act(() => result.current.setError('Falha ao salvar.'));
+    act(() => result.current.setError('Failed to save.'));
     act(() => vi.advanceTimersByTime(5000));
 
     expect(result.current.error).toBeNull();
     expect(result.current.requestId).toBeNull();
   });
 
-  it('reinicia o timeout quando setError é chamado novamente antes de expirar', () => {
-    const { result } = renderHook(() => useErrorMsg());
+  it('restarts the timeout when setError is called again before it expires', () => {
+    const { result } = renderHook(() => useErrorMessage());
 
-    act(() => result.current.setError('Primeiro erro.'));
+    act(() => result.current.setError('First error.'));
     act(() => vi.advanceTimersByTime(3000));
-    act(() => result.current.setError('Segundo erro.'));
+    act(() => result.current.setError('Second error.'));
     act(() => vi.advanceTimersByTime(3000));
 
-    expect(result.current.error).toBe('Segundo erro.');
+    expect(result.current.error).toBe('Second error.');
 
     act(() => vi.advanceTimersByTime(2000));
     expect(result.current.error).toBeNull();

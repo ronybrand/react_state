@@ -1,22 +1,22 @@
 import { useCallback, useRef, useState } from 'react';
 
-const DURACAO_PADRAO_MS = 5000;
+const DEFAULT_DURATION_MS = 5000;
 
-export function useErrorMsg() {
+export function useErrorMessage() {
   const [error, setErrorState] = useState<string | null>(null);
   const [requestId, setRequestId] = useState<string | null>(null);
-  const limpezaTimeoutId = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const clearTimeoutId = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const setError = useCallback(
-    (mensagem: string, id: string | null = null, duracaoMs = DURACAO_PADRAO_MS) => {
-      clearTimeout(limpezaTimeoutId.current);
+    (message: string, id: string | null = null, durationMs = DEFAULT_DURATION_MS) => {
+      clearTimeout(clearTimeoutId.current);
 
-      setErrorState(mensagem);
+      setErrorState(message);
       setRequestId(id);
-      limpezaTimeoutId.current = setTimeout(() => {
+      clearTimeoutId.current = setTimeout(() => {
         setErrorState(null);
         setRequestId(null);
-      }, duracaoMs);
+      }, durationMs);
     },
     [],
   );

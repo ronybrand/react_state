@@ -3,14 +3,14 @@ import { Icon } from './Icon';
 import { ICON_PATHS } from './iconPaths';
 
 describe('Icon', () => {
-  it('renderiza o path correspondente ao nome informado', () => {
+  it('renders the path matching the given name', () => {
     const { container } = render(<Icon name="trash" />);
 
     const path = container.querySelector('path');
     expect(path).toHaveAttribute('d', ICON_PATHS.trash);
   });
 
-  it('usa tamanho padrão de 16 e é decorativo para leitores de tela', () => {
+  it('defaults to size 16 and is decorative for screen readers', () => {
     render(<Icon name="plus" />);
 
     const svg = document.querySelector('svg');
@@ -19,16 +19,16 @@ describe('Icon', () => {
     expect(svg).toHaveAttribute('aria-hidden', 'true');
   });
 
-  it('aplica size e className customizados', () => {
-    render(<Icon name="check" size={24} className="icone-check" />);
+  it('applies a custom size and className', () => {
+    render(<Icon name="check" size={24} className="check-icon" />);
 
     const svg = document.querySelector('svg');
     expect(svg).toHaveAttribute('width', '24');
     expect(svg).toHaveAttribute('height', '24');
-    expect(svg).toHaveClass('icone-check');
+    expect(svg).toHaveClass('check-icon');
   });
 
-  it('não expõe texto acessível próprio (ícone é sempre decorativo)', () => {
+  it('exposes no accessible text of its own (icon is always decorative)', () => {
     render(<Icon name="pencil" />);
 
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
