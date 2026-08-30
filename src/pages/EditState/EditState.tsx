@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { StateForm } from '../../shared/StateForm/StateForm';
-import { ErrorMessage } from '../../shared/ErrorMessage/ErrorMessage';
+import { FormPage } from '../../shared/FormPage/FormPage';
 import { useErrorMessage } from '../../shared/ErrorMessage/useErrorMessage';
 import { Spinner } from '../../shared/Spinner/Spinner';
 import { useStateById } from '../../hooks/useStateById';
@@ -23,7 +23,7 @@ export function EditState() {
     error: loadError,
   } = useStateById(stateId, { enabled: validId });
   const updateState = useUpdateState();
-  const { error, requestId, setError } = useErrorMessage();
+  const { error, requestId, setError, clearError } = useErrorMessage();
 
   useEffect(() => {
     if (!validId) {
@@ -35,8 +35,10 @@ export function EditState() {
         extractErrorMessage(loadError, 'Failed to fetch state.'),
         extractRequestId(loadError),
       );
+      return;
     }
-  }, [validId, isError, loadError, setError]);
+    clearError();
+  }, [validId, isError, loadError, setError, clearError]);
 
   function handleSubmitState(data: NewState) {
     if (!state) {
@@ -54,9 +56,7 @@ export function EditState() {
   }
 
   return (
-    <div className="mx-auto max-w-md p-4">
-      <h1 className="font-display mb-4 text-xl font-semibold">Edit state</h1>
-      <ErrorMessage error={error} requestId={requestId} />
+    <FormPage title="Edit state" error={error} requestId={requestId}>
       {validId && isLoading && <Spinner />}
       {state && (
         <StateForm
@@ -65,6 +65,6 @@ export function EditState() {
           onSubmitState={handleSubmitState}
         />
       )}
-    </div>
+    </FormPage>
   );
 }

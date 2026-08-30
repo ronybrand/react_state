@@ -1,5 +1,6 @@
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { AxiosError, AxiosHeaders } from 'axios';
 import { StateList } from './StateList';
 import { stateService } from '../../services/stateService';
 import { renderWithProviders } from '../../testUtils';
@@ -53,6 +54,23 @@ describe('StateList', () => {
 
     expect(await screen.findByText('Failed to fetch states.')).toBeInTheDocument();
     expect(screen.getByRole('alert')).toBeInTheDocument();
+  });
+
+  it('shows the request id when the fetch fails with a correlated backend error', async () => {
+    const error = new AxiosError('error', undefined, undefined, undefined, {
+      data: { requestId: '550e8400-e29b-41d4-a716-446655440000' },
+      status: 500,
+      statusText: 'Internal Server Error',
+      headers: new AxiosHeaders(),
+      config: { headers: new AxiosHeaders() },
+    });
+    vi.mocked(stateService.list).mockRejectedValue(error);
+
+    renderWithProviders(<StateList />);
+
+    expect(
+      await screen.findByText('Reference ID: 550e8400-e29b-41d4-a716-446655440000'),
+    ).toBeInTheDocument();
   });
 
   it('labels the row action buttons with the state abbreviation', async () => {

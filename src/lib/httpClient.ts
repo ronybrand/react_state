@@ -33,7 +33,10 @@ function delay(ms: number) {
 httpClient.interceptors.response.use(undefined, async (error) => {
   const config: RetryConfig | undefined = error.config;
 
-  if (!config || config.method?.toLowerCase() !== 'get') {
+  const status: number | undefined = error.response?.status;
+  const retryable = !status || status >= 500;
+
+  if (!config || config.method?.toLowerCase() !== 'get' || !retryable) {
     throw error;
   }
 

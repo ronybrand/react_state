@@ -49,6 +49,18 @@ describe('httpClient', () => {
     expect(attempts).toBe(3);
   });
 
+  it('does not resend a GET that failed with a 4xx status', async () => {
+    let attempts = 0;
+    mock.onGet('/state/999').reply(() => {
+      attempts++;
+      return [404];
+    });
+
+    await expect(httpClient.get('/state/999')).rejects.toThrow();
+
+    expect(attempts).toBe(1);
+  });
+
   it('does not resend a failing POST', async () => {
     let attempts = 0;
     mock.onPost('/state/').reply(() => {
