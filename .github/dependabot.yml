@@ -8,7 +8,7 @@ updates:
     groups:
       weekly-batch:
         patterns:
-          - "*"
+          - '*'
 
   - package-ecosystem: github-actions
     directory: /
@@ -17,4 +17,4 @@ updates:
     groups:
       weekly-batch:
         patterns:
-          - "*"
+          - '*'
