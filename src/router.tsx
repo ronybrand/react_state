@@ -1,29 +1,29 @@
 import { Navigate, createBrowserRouter } from 'react-router';
-import { RotaErro } from './compartilhado/RotaErro/RotaErro';
+import { RouteError } from './shared/RouteError/RouteError';
 
 export const router = createBrowserRouter([
   {
-    errorElement: <RotaErro />,
+    errorElement: <RouteError />,
     children: [
       {
         path: '/',
         lazy: async () => {
-          const { ListaEstado } = await import('./paginas/ListaEstado/ListaEstado');
-          return { Component: ListaEstado };
+          const { StateList } = await import('./pages/StateList/StateList');
+          return { Component: StateList };
         },
       },
       {
-        path: '/estado/criar',
+        path: '/state/new',
         lazy: async () => {
-          const { CriarEstado } = await import('./paginas/CriarEstado/CriarEstado');
-          return { Component: CriarEstado };
+          const { CreateState } = await import('./pages/CreateState/CreateState');
+          return { Component: CreateState };
         },
       },
       {
-        path: '/estado/editar/:id',
+        path: '/state/:id/edit',
         lazy: async () => {
-          const { EditarEstado } = await import('./paginas/EditarEstado/EditarEstado');
-          return { Component: EditarEstado };
+          const { EditState } = await import('./pages/EditState/EditState');
+          return { Component: EditState };
         },
       },
       {
