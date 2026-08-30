@@ -1,5 +1,8 @@
+import { RouterProvider } from 'react-router';
+import { router } from './router';
+
 function App() {
-  return <h1 className="font-display text-brand text-2xl font-semibold">react_estado</h1>;
+  return <RouterProvider router={router} />;
 }
 
 export default App;
