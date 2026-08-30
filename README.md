@@ -82,11 +82,18 @@ without it, `npm run dev` still serves the UI, but calls to `/api/*` fail
 ## Development server
 
 ```bash
+npm install
 npm run dev
 ```
 
 Vite proxies `/api` to `http://localhost:8090` (see `vite.config.ts`). Open
 `http://localhost:5173/`.
+
+### Environment variables
+
+`VITE_API_URL` overrides the backend base URL used by `httpClient`
+(defaults to `/api`, proxied by Vite/Vercel as described above) — set it to
+point the app at a different backend without touching `vite.config.ts`.
 
 ## Build
 
