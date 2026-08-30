@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router';
 import { StateForm } from '../../shared/StateForm/StateForm';
-import { ErrorMessage } from '../../shared/ErrorMessage/ErrorMessage';
+import { FormPage } from '../../shared/FormPage/FormPage';
 import { useErrorMessage } from '../../shared/ErrorMessage/useErrorMessage';
 import { useCreateState } from '../../hooks/useCreateState';
 import { extractErrorMessage } from '../../lib/extractErrorMessage';
@@ -22,10 +22,8 @@ export function CreateState() {
   }
 
   return (
-    <div className="mx-auto max-w-md p-4">
-      <h1 className="font-display mb-4 text-xl font-semibold">New state</h1>
-      <ErrorMessage error={error} requestId={requestId} />
+    <FormPage title="New state" error={error} requestId={requestId}>
       <StateForm disabled={createState.isPending} onSubmitState={handleSubmitState} />
-    </div>
+    </FormPage>
   );
 }

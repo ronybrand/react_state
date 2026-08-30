@@ -6,9 +6,6 @@ export function useUpdateState() {
 
   return useMutation({
     mutationFn: stateService.update,
-    onSuccess: (state) => {
-      queryClient.invalidateQueries({ queryKey: ['states'] });
-      queryClient.invalidateQueries({ queryKey: ['states', state.id] });
-    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['states'] }),
   });
 }

@@ -17,7 +17,10 @@ export function StateList() {
 
   useEffect(() => {
     if (isError) {
-      setError(extractErrorMessage(loadError, 'Failed to fetch states.'));
+      setError(
+        extractErrorMessage(loadError, 'Failed to fetch states.'),
+        extractRequestId(loadError),
+      );
     }
   }, [isError, loadError, setError]);
 

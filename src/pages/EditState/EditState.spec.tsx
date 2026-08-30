@@ -1,8 +1,8 @@
-import { screen, waitFor } from '@testing-library/react';
+import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { EditState } from './EditState';
 import { stateService } from '../../services/stateService';
-import { renderWithProviders } from '../../testUtils';
+import { createQueryClient, renderWithProviders } from '../../testUtils';
 import type { State } from '../../interfaces/state';
 
 vi.mock('../../services/stateService', () => ({
@@ -81,5 +81,21 @@ describe('EditState', () => {
 
     expect(await screen.findByText('Invalid state.')).toBeInTheDocument();
     expect(stateService.get).not.toHaveBeenCalled();
+  });
+
+  it('clears a previous load error once the state loads successfully', async () => {
+    vi.mocked(stateService.get).mockRejectedValueOnce(new Error('failed'));
+    vi.mocked(stateService.get).mockResolvedValueOnce(state);
+    const queryClient = createQueryClient();
+
+    renderWithProviders(<EditState />, { queryClient });
+    await screen.findByText('Failed to fetch state.');
+
+    act(() => {
+      queryClient.invalidateQueries({ queryKey: ['states', 1] });
+    });
+
+    await screen.findByDisplayValue('São Paulo');
+    expect(screen.queryByText('Failed to fetch state.')).not.toBeInTheDocument();
   });
 });

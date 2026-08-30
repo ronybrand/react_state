@@ -21,5 +21,11 @@ export function useErrorMessage() {
     [],
   );
 
-  return { error, requestId, setError };
+  const clearError = useCallback(() => {
+    clearTimeout(clearTimeoutId.current);
+    setErrorState(null);
+    setRequestId(null);
+  }, []);
+
+  return { error, requestId, setError, clearError };
 }
