@@ -1,8 +1,10 @@
 import { Navigate, createBrowserRouter } from 'react-router';
 import { RouteError } from './shared/RouteError/RouteError';
+import { Layout } from './shared/Layout/Layout';
 
 export const router = createBrowserRouter([
   {
+    Component: Layout,
     errorElement: <RouteError />,
     children: [
       {
