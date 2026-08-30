@@ -3,6 +3,8 @@
 [![CI](https://github.com/ronybrand/react_state/actions/workflows/ci.yml/badge.svg)](https://github.com/ronybrand/react_state/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/ronybrand/react_state/graph/badge.svg)](https://codecov.io/gh/ronybrand/react_state)
 
+🔗 **[Live application](https://react-state-flax.vercel.app/)**
+
 CRUD for Brazilian federative units (states) — abbreviation, name, and
 created/updated timestamps — consuming a REST API at `/api/estado`.
 
@@ -91,8 +93,9 @@ Outputs the build artifacts to `dist/`.
 
 ## Deployment
 
+Live at **[react-state-flax.vercel.app](https://react-state-flax.vercel.app/)**.
 `vercel.json` deploys the app as a static SPA and rewrites `/api/*` to the
-live backend, the same same-origin-proxy pattern used in development
+live backend, the same origin-proxy pattern used in development
 (`vite.config.ts`) — the browser only ever talks to the deployment's own
 origin, so it avoids CORS entirely (the backend only allows its own
 CloudFront origin). Click "Deploy with Vercel" above, or run
