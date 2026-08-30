@@ -1,11 +1,11 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { estadoService } from '../services/estadoService';
+import { stateService } from '../services/stateService';
 
-export function useCriarEstado() {
+export function useCreateState() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: estadoService.criar,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['estados'] }),
+    mutationFn: stateService.create,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['states'] }),
   });
 }

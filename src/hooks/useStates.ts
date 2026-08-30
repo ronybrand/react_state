@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
-import { estadoService } from '../services/estadoService';
+import { stateService } from '../services/stateService';
 
-export function useEstados() {
+export function useStates() {
   return useQuery({
-    queryKey: ['estados'],
-    queryFn: estadoService.listar,
+    queryKey: ['states'],
+    queryFn: stateService.list,
   });
 }

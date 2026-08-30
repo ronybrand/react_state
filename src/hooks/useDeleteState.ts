@@ -1,11 +1,11 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { estadoService } from '../services/estadoService';
+import { stateService } from '../services/stateService';
 
-export function useExcluirEstado() {
+export function useDeleteState() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: estadoService.excluir,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['estados'] }),
+    mutationFn: stateService.delete,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['states'] }),
   });
 }

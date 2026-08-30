@@ -1,14 +1,14 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { estadoService } from '../services/estadoService';
+import { stateService } from '../services/stateService';
 
-export function useAtualizarEstado() {
+export function useUpdateState() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: estadoService.atualizar,
-    onSuccess: (estado) => {
-      queryClient.invalidateQueries({ queryKey: ['estados'] });
-      queryClient.invalidateQueries({ queryKey: ['estados', estado.id] });
+    mutationFn: stateService.update,
+    onSuccess: (state) => {
+      queryClient.invalidateQueries({ queryKey: ['states'] });
+      queryClient.invalidateQueries({ queryKey: ['states', state.id] });
     },
   });
 }

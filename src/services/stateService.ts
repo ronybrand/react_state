@@ -1,19 +1,24 @@
 import { httpClient } from '../lib/httpClient';
-import type { Estado } from '../interfaces/estado';
+import type { NewState, State } from '../interfaces/state';
+import { toNewStateApiDto, toState, toStateApiDto, type StateApiDto } from './stateApiMapper';
 
+// Matches the backend's actual REST contract (/estado) - not translated,
+// since renaming it here would break real API calls.
 const BASE_URL = '/estado';
 
-export type NovoEstado = Pick<Estado, 'nome' | 'sigla'>;
+export const stateService = {
+  list: () => httpClient.get<StateApiDto[]>(`${BASE_URL}/`).then((r) => r.data.map(toState)),
 
-export const estadoService = {
-  listar: () => httpClient.get<Estado[]>(`${BASE_URL}/`).then((r) => r.data),
+  get: (id: number) =>
+    httpClient.get<StateApiDto>(`${BASE_URL}/${id}`).then((r) => toState(r.data)),
 
-  buscar: (id: number) => httpClient.get<Estado>(`${BASE_URL}/${id}`).then((r) => r.data),
+  create: (state: NewState) =>
+    httpClient
+      .post<StateApiDto>(`${BASE_URL}/`, toNewStateApiDto(state))
+      .then((r) => toState(r.data)),
 
-  criar: (estado: NovoEstado) =>
-    httpClient.post<Estado>(`${BASE_URL}/`, estado).then((r) => r.data),
+  update: (state: State) =>
+    httpClient.put<StateApiDto>(`${BASE_URL}/`, toStateApiDto(state)).then((r) => toState(r.data)),
 
-  atualizar: (estado: Estado) => httpClient.put<Estado>(`${BASE_URL}/`, estado).then((r) => r.data),
-
-  excluir: (id: number) => httpClient.delete<void>(`${BASE_URL}/${id}`).then(() => undefined),
+  delete: (id: number) => httpClient.delete<void>(`${BASE_URL}/${id}`).then(() => undefined),
 };
