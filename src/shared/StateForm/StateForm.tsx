@@ -1,6 +1,7 @@
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { Icon } from '../Icon/Icon';
-import type { NewState } from '../../interfaces/state';
+import { newStateSchema, type NewState } from '../../interfaces/state';
 
 interface StateFormProps {
   initialValues?: NewState;
@@ -18,6 +19,7 @@ export function StateForm({ initialValues, disabled = false, onSubmitState }: St
     formState: { errors, isValid },
   } = useForm<NewState>({
     mode: 'onBlur',
+    resolver: zodResolver(newStateSchema),
     defaultValues: { abbreviation: '', name: '' },
     values: initialValues,
   });
@@ -35,11 +37,11 @@ export function StateForm({ initialValues, disabled = false, onSubmitState }: St
           className={inputClass}
           aria-invalid={errors.abbreviation ? true : undefined}
           aria-describedby="abbreviation-error"
-          {...register('abbreviation', { required: true, minLength: 2, maxLength: 2 })}
+          {...register('abbreviation')}
         />
         {errors.abbreviation && (
           <div id="abbreviation-error" className="text-danger mt-1 text-sm">
-            Enter the state abbreviation.
+            {errors.abbreviation.message}
           </div>
         )}
       </div>
@@ -54,11 +56,11 @@ export function StateForm({ initialValues, disabled = false, onSubmitState }: St
           className={`${inputClass} w-full`}
           aria-invalid={errors.name ? true : undefined}
           aria-describedby="name-error"
-          {...register('name', { required: true, minLength: 3, maxLength: 100 })}
+          {...register('name')}
         />
         {errors.name && (
           <div id="name-error" className="text-danger mt-1 text-sm">
-            Enter the state name.
+            {errors.name.message}
           </div>
         )}
       </div>
