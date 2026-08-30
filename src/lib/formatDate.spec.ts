@@ -1,8 +1,10 @@
 import { formatDate } from './formatDate';
 
 describe('formatDate', () => {
-  it('formats an ISO string as mm/dd/yyyy hh:mm:ss in en-US', () => {
-    expect(formatDate('2024-01-05T13:04:09Z')).toMatch(/^\d{2}\/\d{2}\/\d{4}, \d{2}:\d{2}:\d{2}$/);
+  it('formats an ISO string as mm/dd/yyyy, h:mm:ss AM/PM in en-US', () => {
+    expect(formatDate('2024-01-05T13:04:09Z')).toMatch(
+      /^\d{2}\/\d{2}\/\d{4}, \d{1,2}:\d{2}:\d{2}\s(AM|PM)$/,
+    );
   });
 
   it('respects the given date', () => {
