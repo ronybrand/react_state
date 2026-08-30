@@ -1,5 +1,8 @@
 # react_estado
 
+[![CI](https://github.com/ronybrand/react_estado/actions/workflows/ci.yml/badge.svg)](https://github.com/ronybrand/react_estado/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/ronybrand/react_estado/graph/badge.svg)](https://codecov.io/gh/ronybrand/react_estado)
+
 CRUD de unidades federativas do Brasil (estados) — sigla, nome e timestamps de
 cadastro/atualização — consumindo uma API REST em `/api/estado`.
 
@@ -23,7 +26,8 @@ src/
 │   ├── FormEstado/       # form de criar/editar (React Hook Form)
 │   ├── ErrorMsg/          # alerta de erro (role="alert") + hook useErrorMsg
 │   ├── Spinner/            # indicador de carregamento (role="status")
-│   └── Icon/                # ícones SVG centralizados por nome
+│   ├── Icon/                # ícones SVG centralizados por nome
+│   └── RotaErro/            # fallback de erro de renderização por rota
 ├── hooks/               # hooks de TanStack Query (listar, buscar, criar, atualizar, excluir)
 ├── lib/                 # httpClient (axios + interceptors), extratores de erro, formatarData
 ├── interfaces/          # tipo Estado
@@ -44,6 +48,9 @@ src/
 - Acessibilidade: `aria-invalid`/`aria-describedby` nos campos de formulário,
   `aria-label` dinâmico nos botões de ação por linha, `role="status"`/
   `role="alert"` para carregamento/erro.
+- Erros de request (query/mutation) são tratados por página via
+  `useErrorMsg`; erros de renderização não previstos são capturados pelo
+  `errorElement` do React Router (`RotaErro`), evitando tela em branco.
 
 ## Pré-requisitos
 
@@ -81,8 +88,12 @@ Husky + lint-staged rodam `eslint --fix` e `prettier --write` no pre-commit.
 ## Testes
 
 ```bash
-npm test
+npm test               # vitest
+npm run test:coverage  # vitest run --coverage
 ```
 
 Vitest + React Testing Library, cobrindo os fluxos de listar, criar, editar,
-excluir e a validação do formulário compartilhado.
+excluir, a validação do formulário compartilhado, os componentes de suporte
+(`Icon`, `Spinner`, `ErrorMsg`/`useErrorMsg`, `RotaErro`) e utilitários de
+`lib/`. Cobertura reportada no CI via Codecov, com gate de 90% (projeto) /
+80% (patch).
