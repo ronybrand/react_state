@@ -1,12 +1,12 @@
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { CriarEstado } from './CriarEstado';
-import { estadoService } from '../../services/estadoService';
-import { renderComProviders } from '../../testUtils';
+import { CreateState } from './CreateState';
+import { stateService } from '../../services/stateService';
+import { renderWithProviders } from '../../testUtils';
 
-vi.mock('../../services/estadoService', () => ({
-  estadoService: {
-    criar: vi.fn(),
+vi.mock('../../services/stateService', () => ({
+  stateService: {
+    create: vi.fn(),
   },
 }));
 
@@ -16,48 +16,48 @@ vi.mock('react-router', async (importOriginal) => {
   return { ...actual, useNavigate: () => mockNavigate };
 });
 
-describe('CriarEstado', () => {
+describe('CreateState', () => {
   beforeEach(() => {
-    vi.mocked(estadoService.criar).mockReset();
+    vi.mocked(stateService.create).mockReset();
     mockNavigate.mockReset();
   });
 
-  it('cria o estado e navega para a lista', async () => {
-    vi.mocked(estadoService.criar).mockResolvedValue({
+  it('creates the state and navigates to the list', async () => {
+    vi.mocked(stateService.create).mockResolvedValue({
       id: 1,
-      sigla: 'RJ',
-      nome: 'Rio de Janeiro',
-      dataHoraCadastro: '2024-01-01T10:00:00Z',
-      dataHoraUltimaAtualizacao: '2024-01-01T10:00:00Z',
+      abbreviation: 'RJ',
+      name: 'Rio de Janeiro',
+      createdAt: '2024-01-01T10:00:00Z',
+      updatedAt: '2024-01-01T10:00:00Z',
     });
     const user = userEvent.setup();
 
-    renderComProviders(<CriarEstado />);
+    renderWithProviders(<CreateState />);
 
-    await user.type(screen.getByLabelText('Sigla'), 'RJ');
-    await user.type(screen.getByLabelText('Nome'), 'Rio de Janeiro');
+    await user.type(screen.getByLabelText('Abbreviation'), 'RJ');
+    await user.type(screen.getByLabelText('Name'), 'Rio de Janeiro');
     await user.tab();
-    await user.click(screen.getByRole('button', { name: 'Salvar' }));
+    await user.click(screen.getByRole('button', { name: 'Save' }));
 
     await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/'));
-    expect(estadoService.criar).toHaveBeenCalledWith(
-      { sigla: 'RJ', nome: 'Rio de Janeiro' },
+    expect(stateService.create).toHaveBeenCalledWith(
+      { abbreviation: 'RJ', name: 'Rio de Janeiro' },
       expect.anything(),
     );
   });
 
-  it('mostra a mensagem de erro do backend quando a criação falha', async () => {
-    vi.mocked(estadoService.criar).mockRejectedValue(new Error('falhou'));
+  it('shows the backend error message when creation fails', async () => {
+    vi.mocked(stateService.create).mockRejectedValue(new Error('failed'));
     const user = userEvent.setup();
 
-    renderComProviders(<CriarEstado />);
+    renderWithProviders(<CreateState />);
 
-    await user.type(screen.getByLabelText('Sigla'), 'RJ');
-    await user.type(screen.getByLabelText('Nome'), 'Rio de Janeiro');
+    await user.type(screen.getByLabelText('Abbreviation'), 'RJ');
+    await user.type(screen.getByLabelText('Name'), 'Rio de Janeiro');
     await user.tab();
-    await user.click(screen.getByRole('button', { name: 'Salvar' }));
+    await user.click(screen.getByRole('button', { name: 'Save' }));
 
-    expect(await screen.findByText('Falha ao criar estado.')).toBeInTheDocument();
+    expect(await screen.findByText('Failed to create state.')).toBeInTheDocument();
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 });

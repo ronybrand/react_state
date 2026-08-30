@@ -1,91 +1,91 @@
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { ListaEstado } from './ListaEstado';
-import { estadoService } from '../../services/estadoService';
-import { renderComProviders } from '../../testUtils';
-import type { Estado } from '../../interfaces/estado';
+import { StateList } from './StateList';
+import { stateService } from '../../services/stateService';
+import { renderWithProviders } from '../../testUtils';
+import type { State } from '../../interfaces/state';
 
-vi.mock('../../services/estadoService', () => ({
-  estadoService: {
-    listar: vi.fn(),
-    excluir: vi.fn(),
+vi.mock('../../services/stateService', () => ({
+  stateService: {
+    list: vi.fn(),
+    delete: vi.fn(),
   },
 }));
 
-const estados: Estado[] = [
+const states: State[] = [
   {
     id: 1,
-    sigla: 'SP',
-    nome: 'São Paulo',
-    dataHoraCadastro: '2024-01-01T10:00:00Z',
-    dataHoraUltimaAtualizacao: '2024-01-01T10:00:00Z',
+    abbreviation: 'SP',
+    name: 'São Paulo',
+    createdAt: '2024-01-01T10:00:00Z',
+    updatedAt: '2024-01-01T10:00:00Z',
   },
 ];
 
-describe('ListaEstado', () => {
+describe('StateList', () => {
   beforeEach(() => {
-    vi.mocked(estadoService.listar).mockReset();
-    vi.mocked(estadoService.excluir).mockReset();
+    vi.mocked(stateService.list).mockReset();
+    vi.mocked(stateService.delete).mockReset();
   });
 
-  it('mostra os estados assim que a busca resolve', async () => {
-    vi.mocked(estadoService.listar).mockResolvedValue(estados);
+  it('shows the states as soon as the fetch resolves', async () => {
+    vi.mocked(stateService.list).mockResolvedValue(states);
 
-    renderComProviders(<ListaEstado />);
+    renderWithProviders(<StateList />);
 
     expect(screen.getByRole('status')).toBeInTheDocument();
     expect(await screen.findByText('São Paulo')).toBeInTheDocument();
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
   });
 
-  it('mostra a mensagem de vazio quando não há estados', async () => {
-    vi.mocked(estadoService.listar).mockResolvedValue([]);
+  it('shows the empty message when there are no states', async () => {
+    vi.mocked(stateService.list).mockResolvedValue([]);
 
-    renderComProviders(<ListaEstado />);
+    renderWithProviders(<StateList />);
 
-    expect(await screen.findByText('Nenhum estado cadastrado.')).toBeInTheDocument();
+    expect(await screen.findByText('No states registered.')).toBeInTheDocument();
   });
 
-  it('mostra a mensagem de erro do backend quando a busca falha', async () => {
-    vi.mocked(estadoService.listar).mockRejectedValue(new Error('falhou'));
+  it('shows the backend error message when the fetch fails', async () => {
+    vi.mocked(stateService.list).mockRejectedValue(new Error('failed'));
 
-    renderComProviders(<ListaEstado />);
+    renderWithProviders(<StateList />);
 
-    expect(await screen.findByText('Falha ao buscar estados.')).toBeInTheDocument();
+    expect(await screen.findByText('Failed to fetch states.')).toBeInTheDocument();
     expect(screen.getByRole('alert')).toBeInTheDocument();
   });
 
-  it('rotula os botões de ação da linha com a sigla do estado', async () => {
-    vi.mocked(estadoService.listar).mockResolvedValue(estados);
+  it('labels the row action buttons with the state abbreviation', async () => {
+    vi.mocked(stateService.list).mockResolvedValue(states);
 
-    renderComProviders(<ListaEstado />);
+    renderWithProviders(<StateList />);
 
-    expect(await screen.findByRole('link', { name: 'Editar SP' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Excluir SP' })).toBeInTheDocument();
+    expect(await screen.findByRole('link', { name: 'Edit SP' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Delete SP' })).toBeInTheDocument();
   });
 
-  it('exclui um estado após confirmação', async () => {
-    vi.mocked(estadoService.listar).mockResolvedValue(estados);
-    vi.mocked(estadoService.excluir).mockResolvedValue(undefined);
+  it('deletes a state after confirmation', async () => {
+    vi.mocked(stateService.list).mockResolvedValue(states);
+    vi.mocked(stateService.delete).mockResolvedValue(undefined);
     vi.spyOn(window, 'confirm').mockReturnValue(true);
     const user = userEvent.setup();
 
-    renderComProviders(<ListaEstado />);
+    renderWithProviders(<StateList />);
 
-    await user.click(await screen.findByRole('button', { name: 'Excluir SP' }));
+    await user.click(await screen.findByRole('button', { name: 'Delete SP' }));
 
-    await waitFor(() => expect(estadoService.excluir).toHaveBeenCalledWith(1, expect.anything()));
+    await waitFor(() => expect(stateService.delete).toHaveBeenCalledWith(1, expect.anything()));
   });
 
-  it('não exclui quando a confirmação é cancelada', async () => {
-    vi.mocked(estadoService.listar).mockResolvedValue(estados);
+  it('does not delete when the confirmation is cancelled', async () => {
+    vi.mocked(stateService.list).mockResolvedValue(states);
     vi.spyOn(window, 'confirm').mockReturnValue(false);
     const user = userEvent.setup();
 
-    renderComProviders(<ListaEstado />);
+    renderWithProviders(<StateList />);
 
-    await user.click(await screen.findByRole('button', { name: 'Excluir SP' }));
+    await user.click(await screen.findByRole('button', { name: 'Delete SP' }));
 
-    expect(estadoService.excluir).not.toHaveBeenCalled();
+    expect(stateService.delete).not.toHaveBeenCalled();
   });
 });

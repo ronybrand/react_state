@@ -1,31 +1,31 @@
 import { useNavigate } from 'react-router';
-import { FormEstado } from '../../compartilhado/FormEstado/FormEstado';
-import { ErrorMsg } from '../../compartilhado/ErrorMsg/ErrorMsg';
-import { useErrorMsg } from '../../compartilhado/ErrorMsg/useErrorMsg';
-import { useCriarEstado } from '../../hooks/useCriarEstado';
-import { extraiMensagemErro } from '../../lib/extraiMensagemErro';
-import { extraiRequestIdErro } from '../../lib/extraiRequestIdErro';
-import type { NovoEstado } from '../../services/estadoService';
+import { StateForm } from '../../shared/StateForm/StateForm';
+import { ErrorMessage } from '../../shared/ErrorMessage/ErrorMessage';
+import { useErrorMessage } from '../../shared/ErrorMessage/useErrorMessage';
+import { useCreateState } from '../../hooks/useCreateState';
+import { extractErrorMessage } from '../../lib/extractErrorMessage';
+import { extractRequestId } from '../../lib/extractRequestId';
+import type { NewState } from '../../interfaces/state';
 
-export function CriarEstado() {
+export function CreateState() {
   const navigate = useNavigate();
-  const criarEstado = useCriarEstado();
-  const { error, requestId, setError } = useErrorMsg();
+  const createState = useCreateState();
+  const { error, requestId, setError } = useErrorMessage();
 
-  function handleEnviar(estado: NovoEstado) {
-    criarEstado.mutate(estado, {
+  function handleSubmitState(state: NewState) {
+    createState.mutate(state, {
       onSuccess: () => navigate('/'),
       onError: (err) => {
-        setError(extraiMensagemErro(err, 'Falha ao criar estado.'), extraiRequestIdErro(err));
+        setError(extractErrorMessage(err, 'Failed to create state.'), extractRequestId(err));
       },
     });
   }
 
   return (
     <div className="mx-auto max-w-md p-4">
-      <h1 className="font-display mb-4 text-xl font-semibold">Novo estado</h1>
-      <ErrorMsg error={error} requestId={requestId} />
-      <FormEstado desabilitado={criarEstado.isPending} onEnviar={handleEnviar} />
+      <h1 className="font-display mb-4 text-xl font-semibold">New state</h1>
+      <ErrorMessage error={error} requestId={requestId} />
+      <StateForm disabled={createState.isPending} onSubmitState={handleSubmitState} />
     </div>
   );
 }

@@ -1,14 +1,14 @@
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { EditarEstado } from './EditarEstado';
-import { estadoService } from '../../services/estadoService';
-import { renderComProviders } from '../../testUtils';
-import type { Estado } from '../../interfaces/estado';
+import { EditState } from './EditState';
+import { stateService } from '../../services/stateService';
+import { renderWithProviders } from '../../testUtils';
+import type { State } from '../../interfaces/state';
 
-vi.mock('../../services/estadoService', () => ({
-  estadoService: {
-    buscar: vi.fn(),
-    atualizar: vi.fn(),
+vi.mock('../../services/stateService', () => ({
+  stateService: {
+    get: vi.fn(),
+    update: vi.fn(),
   },
 }));
 
@@ -19,67 +19,67 @@ vi.mock('react-router', async (importOriginal) => {
   return { ...actual, useNavigate: () => mockNavigate, useParams: mockUseParams };
 });
 
-const estado: Estado = {
+const state: State = {
   id: 1,
-  sigla: 'SP',
-  nome: 'São Paulo',
-  dataHoraCadastro: '2024-01-01T10:00:00Z',
-  dataHoraUltimaAtualizacao: '2024-01-01T10:00:00Z',
+  abbreviation: 'SP',
+  name: 'São Paulo',
+  createdAt: '2024-01-01T10:00:00Z',
+  updatedAt: '2024-01-01T10:00:00Z',
 };
 
-describe('EditarEstado', () => {
+describe('EditState', () => {
   beforeEach(() => {
-    vi.mocked(estadoService.buscar).mockReset();
-    vi.mocked(estadoService.atualizar).mockReset();
+    vi.mocked(stateService.get).mockReset();
+    vi.mocked(stateService.update).mockReset();
     mockNavigate.mockReset();
     mockUseParams.mockReturnValue({ id: '1' });
   });
 
-  it('preenche o form assim que o estado chega de forma assíncrona', async () => {
-    vi.mocked(estadoService.buscar).mockResolvedValue(estado);
+  it('fills the form as soon as the state arrives asynchronously', async () => {
+    vi.mocked(stateService.get).mockResolvedValue(state);
 
-    renderComProviders(<EditarEstado />);
+    renderWithProviders(<EditState />);
 
     expect(await screen.findByDisplayValue('São Paulo')).toBeInTheDocument();
     expect(screen.getByDisplayValue('SP')).toBeInTheDocument();
   });
 
-  it('atualiza o estado e navega para a lista', async () => {
-    vi.mocked(estadoService.buscar).mockResolvedValue(estado);
-    vi.mocked(estadoService.atualizar).mockResolvedValue(estado);
+  it('updates the state and navigates to the list', async () => {
+    vi.mocked(stateService.get).mockResolvedValue(state);
+    vi.mocked(stateService.update).mockResolvedValue(state);
     const user = userEvent.setup();
 
-    renderComProviders(<EditarEstado />);
+    renderWithProviders(<EditState />);
 
     await screen.findByDisplayValue('São Paulo');
-    await user.clear(screen.getByLabelText('Nome'));
-    await user.type(screen.getByLabelText('Nome'), 'São Paulo Editado');
+    await user.clear(screen.getByLabelText('Name'));
+    await user.type(screen.getByLabelText('Name'), 'São Paulo Updated');
     await user.tab();
-    await user.click(screen.getByRole('button', { name: 'Salvar' }));
+    await user.click(screen.getByRole('button', { name: 'Save' }));
 
     await waitFor(() =>
-      expect(estadoService.atualizar).toHaveBeenCalledWith(
-        { ...estado, sigla: 'SP', nome: 'São Paulo Editado' },
+      expect(stateService.update).toHaveBeenCalledWith(
+        { ...state, abbreviation: 'SP', name: 'São Paulo Updated' },
         expect.anything(),
       ),
     );
     expect(mockNavigate).toHaveBeenCalledWith('/');
   });
 
-  it('mostra a mensagem de erro do backend quando a busca falha', async () => {
-    vi.mocked(estadoService.buscar).mockRejectedValue(new Error('falhou'));
+  it('shows the backend error message when the fetch fails', async () => {
+    vi.mocked(stateService.get).mockRejectedValue(new Error('failed'));
 
-    renderComProviders(<EditarEstado />);
+    renderWithProviders(<EditState />);
 
-    expect(await screen.findByText('Falha ao buscar estado.')).toBeInTheDocument();
+    expect(await screen.findByText('Failed to fetch state.')).toBeInTheDocument();
   });
 
-  it('mostra erro e não busca quando o id da rota é inválido', async () => {
+  it('shows an error and does not fetch when the route id is invalid', async () => {
     mockUseParams.mockReturnValue({ id: 'abc' });
 
-    renderComProviders(<EditarEstado />);
+    renderWithProviders(<EditState />);
 
-    expect(await screen.findByText('Estado inválido.')).toBeInTheDocument();
-    expect(estadoService.buscar).not.toHaveBeenCalled();
+    expect(await screen.findByText('Invalid state.')).toBeInTheDocument();
+    expect(stateService.get).not.toHaveBeenCalled();
   });
 });

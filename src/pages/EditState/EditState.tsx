@@ -1,53 +1,53 @@
 import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router';
-import { FormEstado } from '../../compartilhado/FormEstado/FormEstado';
-import { ErrorMsg } from '../../compartilhado/ErrorMsg/ErrorMsg';
-import { useErrorMsg } from '../../compartilhado/ErrorMsg/useErrorMsg';
-import { Spinner } from '../../compartilhado/Spinner/Spinner';
-import { useEstado } from '../../hooks/useEstado';
-import { useAtualizarEstado } from '../../hooks/useAtualizarEstado';
-import { extraiMensagemErro } from '../../lib/extraiMensagemErro';
-import { extraiRequestIdErro } from '../../lib/extraiRequestIdErro';
-import type { NovoEstado } from '../../services/estadoService';
+import { StateForm } from '../../shared/StateForm/StateForm';
+import { ErrorMessage } from '../../shared/ErrorMessage/ErrorMessage';
+import { useErrorMessage } from '../../shared/ErrorMessage/useErrorMessage';
+import { Spinner } from '../../shared/Spinner/Spinner';
+import { useStateById } from '../../hooks/useStateById';
+import { useUpdateState } from '../../hooks/useUpdateState';
+import { extractErrorMessage } from '../../lib/extractErrorMessage';
+import { extractRequestId } from '../../lib/extractRequestId';
+import type { NewState } from '../../interfaces/state';
 
-export function EditarEstado() {
+export function EditState() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const estadoId = Number(id);
-  const idValido = id !== undefined && Number.isInteger(estadoId) && estadoId > 0;
+  const stateId = Number(id);
+  const validId = id !== undefined && Number.isInteger(stateId) && stateId > 0;
 
   const {
-    data: estado,
+    data: state,
     isLoading,
     isError,
-    error: erroCarregamento,
-  } = useEstado(estadoId, { enabled: idValido });
-  const atualizarEstado = useAtualizarEstado();
-  const { error, requestId, setError } = useErrorMsg();
+    error: loadError,
+  } = useStateById(stateId, { enabled: validId });
+  const updateState = useUpdateState();
+  const { error, requestId, setError } = useErrorMessage();
 
   useEffect(() => {
-    if (!idValido) {
-      setError('Estado inválido.');
+    if (!validId) {
+      setError('Invalid state.');
       return;
     }
     if (isError) {
       setError(
-        extraiMensagemErro(erroCarregamento, 'Falha ao buscar estado.'),
-        extraiRequestIdErro(erroCarregamento),
+        extractErrorMessage(loadError, 'Failed to fetch state.'),
+        extractRequestId(loadError),
       );
     }
-  }, [idValido, isError, erroCarregamento, setError]);
+  }, [validId, isError, loadError, setError]);
 
-  function handleEnviar(dados: NovoEstado) {
-    if (!estado) {
+  function handleSubmitState(data: NewState) {
+    if (!state) {
       return;
     }
-    atualizarEstado.mutate(
-      { ...estado, ...dados },
+    updateState.mutate(
+      { ...state, ...data },
       {
         onSuccess: () => navigate('/'),
         onError: (err) => {
-          setError(extraiMensagemErro(err, 'Falha ao atualizar estado.'), extraiRequestIdErro(err));
+          setError(extractErrorMessage(err, 'Failed to update state.'), extractRequestId(err));
         },
       },
     );
@@ -55,14 +55,14 @@ export function EditarEstado() {
 
   return (
     <div className="mx-auto max-w-md p-4">
-      <h1 className="font-display mb-4 text-xl font-semibold">Editar estado</h1>
-      <ErrorMsg error={error} requestId={requestId} />
-      {idValido && isLoading && <Spinner />}
-      {estado && (
-        <FormEstado
-          valoresIniciais={{ sigla: estado.sigla, nome: estado.nome }}
-          desabilitado={atualizarEstado.isPending}
-          onEnviar={handleEnviar}
+      <h1 className="font-display mb-4 text-xl font-semibold">Edit state</h1>
+      <ErrorMessage error={error} requestId={requestId} />
+      {validId && isLoading && <Spinner />}
+      {state && (
+        <StateForm
+          initialValues={{ abbreviation: state.abbreviation, name: state.name }}
+          disabled={updateState.isPending}
+          onSubmitState={handleSubmitState}
         />
       )}
     </div>
