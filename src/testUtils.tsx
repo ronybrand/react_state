@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 
-export function criaQueryClient() {
+export function createQueryClient() {
   return new QueryClient({
     defaultOptions: {
       queries: { retry: false },
@@ -12,17 +12,17 @@ export function criaQueryClient() {
   });
 }
 
-export function renderComProviders(
+export function renderWithProviders(
   ui: ReactElement,
   {
-    queryClient = criaQueryClient(),
-    rota = '/',
-  }: { queryClient?: QueryClient; rota?: string } = {},
+    queryClient = createQueryClient(),
+    route = '/',
+  }: { queryClient?: QueryClient; route?: string } = {},
 ) {
   function Wrapper({ children }: { children: ReactNode }) {
     return (
       <QueryClientProvider client={queryClient}>
-        <MemoryRouter initialEntries={[rota]}>{children}</MemoryRouter>
+        <MemoryRouter initialEntries={[route]}>{children}</MemoryRouter>
       </QueryClientProvider>
     );
   }
