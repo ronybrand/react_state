@@ -1,12 +1,12 @@
-# react_estado
+# react_state
 
-[![CI](https://github.com/ronybrand/react_estado/actions/workflows/ci.yml/badge.svg)](https://github.com/ronybrand/react_estado/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/ronybrand/react_estado/graph/badge.svg)](https://codecov.io/gh/ronybrand/react_estado)
+[![CI](https://github.com/ronybrand/react_state/actions/workflows/ci.yml/badge.svg)](https://github.com/ronybrand/react_state/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/ronybrand/react_state/graph/badge.svg)](https://codecov.io/gh/ronybrand/react_state)
 
 CRUD for Brazilian federative units (states) — abbreviation, name, and
 created/updated timestamps — consuming a REST API at `/api/estado`.
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/ronybrand/react_estado)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/ronybrand/react_state)
 
 ## Screenshots
 
