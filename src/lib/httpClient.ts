@@ -69,6 +69,6 @@ httpClient.interceptors.response.use(undefined, async (error) => {
     throw error;
   }
 
-  await delay(RETRY_DELAY_MS);
+  await delay(RETRY_DELAY_MS * 2 ** (config._retryCount - 1));
   return httpClient(config);
 });
