@@ -8,12 +8,7 @@ Husky's `lint-staged` hook only formats files staged in the current commit; don'
 
 ## dependabot.yml — `ignore` rules
 
-There are 4 major-bump `ignore` rules in `.github/dependabot.yml`, each fixing a real (not theoretical) broken `npm ci`/lint:
-
-- `eslint` major — `eslint-plugin-jsx-a11y@6.10.2` (latest published version) caps its peer dep at `eslint ^9`.
-- `@eslint/js` major — must move in lockstep with `eslint` (otherwise `@eslint/js@10` alone requires `eslint ^10` and breaks the other way).
-- `typescript` major — `typescript-eslint@8.68.0` caps its peer dep at `typescript <6.1.0`. Same constraint exists in the sibling `angular_estado` repo.
-- `eslint-plugin-react-hooks` major — not a peer-dep issue, it's a functional bug: v7.x's `recommended-latest` exports config in the legacy eslintrc format (`plugins` as an array), incompatible with ESLint 9's flat config. Reproduces as `Oops! Something went wrong!` on `npm run lint`.
+There are 4 major-bump `ignore` rules in `.github/dependabot.yml`, each fixing a real (not theoretical) broken `npm ci`/lint. See the comments next to each rule in that file for why — don't duplicate that reasoning here, keep it in one place so it can't drift out of sync.
 
 There's a monthly workflow (`.github/workflows/dependabot-ignore-check.yml`, also triggerable manually via `workflow_dispatch` in the Actions tab) that re-evaluates these 4 constraints and opens/updates a single tracking issue when one becomes removable. Don't remove an `ignore` rule without first letting dependabot open the bump PR and confirming CI passes.
 
