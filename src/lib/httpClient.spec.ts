@@ -1,6 +1,11 @@
 import MockAdapter from 'axios-mock-adapter';
 import { httpClient, REQUEST_ID_HEADER } from './httpClient';
 import { clearToken, getToken, setToken } from './tokenStorage';
+import { router } from '../router';
+
+vi.mock('../router', () => ({
+  router: { navigate: vi.fn() },
+}));
 
 describe('httpClient', () => {
   let mock: MockAdapter;
@@ -8,6 +13,7 @@ describe('httpClient', () => {
   beforeEach(() => {
     mock = new MockAdapter(httpClient);
     clearToken();
+    vi.mocked(router.navigate).mockClear();
   });
 
   afterEach(() => {
@@ -95,14 +101,7 @@ describe('httpClient', () => {
     await httpClient.post('/state/', {});
   });
 
-  it('clears the token and redirects to /login on a 401, without retrying', async () => {
-    const originalLocation = window.location;
-    // window.location isn't reassignable directly in jsdom - replacing the
-    // whole property (and restoring it after) is the standard workaround.
-    Object.defineProperty(window, 'location', {
-      configurable: true,
-      value: { ...originalLocation, href: '' },
-    });
+  it('clears the token and navigates to /login on a 401, without retrying', async () => {
     setToken('token-existente');
     let attempts = 0;
     mock.onPost('/state/').reply(() => {
@@ -114,9 +113,22 @@ describe('httpClient', () => {
 
     expect(attempts).toBe(1);
     expect(getToken()).toBeNull();
-    expect(window.location.href).toBe('/login');
+    expect(router.navigate).toHaveBeenCalledWith('/login', { replace: true });
+  });
 
-    Object.defineProperty(window, 'location', { configurable: true, value: originalLocation });
+  it('does not clear the token or navigate on a 401 from the login request itself', async () => {
+    setToken('token-existente');
+    let attempts = 0;
+    mock.onPost('/auth/login').reply(() => {
+      attempts++;
+      return [401, { message: 'Invalid credentials' }];
+    });
+
+    await expect(httpClient.post('/auth/login', {})).rejects.toThrow();
+
+    expect(attempts).toBe(1);
+    expect(getToken()).toBe('token-existente');
+    expect(router.navigate).not.toHaveBeenCalled();
   });
 
   it('does not clear the token on a non-401 error', async () => {

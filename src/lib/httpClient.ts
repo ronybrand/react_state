@@ -1,5 +1,8 @@
 import axios, { type AxiosRequestConfig } from 'axios';
 import { clearToken, getToken } from './tokenStorage';
+import { router } from '../router';
+
+const LOGIN_URL = '/auth/login';
 
 export const REQUEST_ID_HEADER = 'X-Request-Id';
 export const TIMEOUT_MS = 15000;
@@ -44,10 +47,12 @@ httpClient.interceptors.response.use(undefined, async (error) => {
   // Checked before the retry branch below so a 401 is never retried, and
   // handled here (not left to page-level onError) because it's a global
   // concern - any request can lose auth mid-session, not just the one the
-  // user happens to be looking at.
-  if (status === 401) {
+  // user happens to be looking at. The login request itself is excluded:
+  // a wrong-password attempt also answers 401, and that's a normal form
+  // error for Login.tsx to show, not a session loss to react to globally.
+  if (status === 401 && !config?.url?.endsWith(LOGIN_URL)) {
     clearToken();
-    window.location.href = '/login';
+    router.navigate('/login', { replace: true });
     throw error;
   }
 
