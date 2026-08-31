@@ -8,9 +8,9 @@ Husky's `lint-staged` hook only formats files staged in the current commit; don'
 
 ## dependabot.yml — `ignore` rules
 
-There are 4 major-bump `ignore` rules in `.github/dependabot.yml`, each fixing a real (not theoretical) broken `npm ci`/lint. See the comments next to each rule in that file for why — don't duplicate that reasoning here, keep it in one place so it can't drift out of sync.
+Each major-bump `ignore` rule in `.github/dependabot.yml` fixes a real (not theoretical) broken `npm ci`/lint. See the comment next to each rule for why — don't duplicate that reasoning here, keep it in one place so it can't drift out of sync.
 
-There's a monthly workflow (`.github/workflows/dependabot-ignore-check.yml`, also triggerable manually via `workflow_dispatch` in the Actions tab) that re-evaluates these 4 constraints and opens/updates a single tracking issue when one becomes removable. Don't remove an `ignore` rule without first letting dependabot open the bump PR and confirming CI passes.
+`.github/workflows/dependabot-ignore-check.yml` (monthly + manually triggerable via `workflow_dispatch` in the Actions tab) re-evaluates those rules and opens/updates a single tracking issue when one becomes removable. Don't remove an `ignore` rule without first letting dependabot open the bump PR and confirming CI passes. When you add a new `ignore` rule, add a matching check to that workflow.
 
 ## CI (`.github/workflows/`)
 
