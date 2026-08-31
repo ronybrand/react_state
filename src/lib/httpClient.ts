@@ -1,8 +1,7 @@
 import axios, { type AxiosRequestConfig } from 'axios';
 import { clearToken, getToken } from './tokenStorage';
 import { router } from '../router';
-
-const LOGIN_URL = '/auth/login';
+import { LOGIN_PATH } from './apiPaths';
 
 export const REQUEST_ID_HEADER = 'X-Request-Id';
 export const TIMEOUT_MS = 15000;
@@ -53,7 +52,7 @@ httpClient.interceptors.response.use(undefined, async (error) => {
   // Guards against concurrent in-flight requests each triggering their own
   // clearToken()/navigate when a session expires: only the first 401 to see
   // a token still present does the redirect, the rest are no-ops here.
-  if (status === 401 && !config?.url?.endsWith(LOGIN_URL) && getToken()) {
+  if (status === 401 && !config?.url?.endsWith(LOGIN_PATH) && getToken()) {
     clearToken();
     router.navigate('/login', { replace: true });
     throw error;
