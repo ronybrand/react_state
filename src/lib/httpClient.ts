@@ -12,10 +12,26 @@ interface RetryConfig extends AxiosRequestConfig {
   _retryCount?: number;
 }
 
+const baseURL = import.meta.env.VITE_API_URL ?? '/api';
+
 export const httpClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL ?? '/api',
+  baseURL,
   timeout: TIMEOUT_MS,
 });
+
+// A relative url is always resolved against baseURL by axios, so it's safe.
+// A request can also be made with an absolute url on this same instance
+// though (bypassing baseURL entirely), so that case is checked against a
+// boundary - not just startsWith - so a neighboring origin like
+// `${baseURL}evil.com` isn't treated as the API itself.
+function ehRequisicaoDaApi(url: string | undefined): boolean {
+  if (!url || !/^https?:\/\//i.test(url)) {
+    return true;
+  }
+
+  const base = new URL(baseURL, window.location.origin).toString().replace(/\/$/, '');
+  return url === base || url.startsWith(`${base}/`);
+}
 
 // Generated once per logical user action, not per network attempt - the
 // retry interceptor resends the same config through the client, which goes
@@ -28,7 +44,7 @@ httpClient.interceptors.request.use((config) => {
   }
 
   const token = getToken();
-  if (token && !config.headers.has('Authorization')) {
+  if (token && !config.headers.has('Authorization') && ehRequisicaoDaApi(config.url)) {
     config.headers.set('Authorization', `Bearer ${token}`);
   }
 
