@@ -1,5 +1,5 @@
 import MockAdapter from 'axios-mock-adapter';
-import { httpClient, REQUEST_ID_HEADER } from './httpClient';
+import { httpClient, REQUEST_ID_HEADER, RETRY_DELAY_MS } from './httpClient';
 import { clearToken, getToken, setToken } from './tokenStorage';
 import { router } from '../router';
 
@@ -56,6 +56,21 @@ describe('httpClient', () => {
 
     expect(response.status).toBe(200);
     expect(attempts).toBe(3);
+  });
+
+  it('waits longer between each retry attempt (exponential backoff)', async () => {
+    const setTimeoutSpy = vi.spyOn(globalThis, 'setTimeout');
+    let attempts = 0;
+    mock.onGet('/state/').reply(() => {
+      attempts++;
+      return attempts <= 2 ? [500] : [200, []];
+    });
+
+    await httpClient.get('/state/');
+
+    const delays = setTimeoutSpy.mock.calls.map(([, ms]) => ms);
+    expect(delays).toEqual([RETRY_DELAY_MS, RETRY_DELAY_MS * 2]);
+    setTimeoutSpy.mockRestore();
   });
 
   it('does not resend a GET that failed with a 4xx status', async () => {
