@@ -9,6 +9,11 @@ updates:
       weekly-batch:
         patterns:
           - '*'
+    ignore:
+      # eslint-plugin-jsx-a11y@6.10.2 (latest) caps its eslint peer dep at
+      # ^9, so an eslint major bump breaks npm ci with ERESOLVE.
+      - dependency-name: 'eslint'
+        update-types: ['version-update:semver-major']
 
   - package-ecosystem: github-actions
     directory: /
