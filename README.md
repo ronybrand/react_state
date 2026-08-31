@@ -1,6 +1,7 @@
 # react_state
 
 [![CI](https://github.com/ronybrand/react_state/actions/workflows/ci.yml/badge.svg)](https://github.com/ronybrand/react_state/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/ronybrand/react_state/actions/workflows/codeql.yml/badge.svg)](https://github.com/ronybrand/react_state/actions/workflows/codeql.yml)
 [![codecov](https://codecov.io/gh/ronybrand/react_state/graph/badge.svg)](https://codecov.io/gh/ronybrand/react_state)
 
 🔗 **[Live application](https://react-state-flax.vercel.app/)**
@@ -33,6 +34,7 @@ src/
 │   ├── Layout/             # app shell: title bar + <Outlet/> + Footer
 │   ├── Footer/              # FE/BE build info, hides silently on failure
 │   ├── StateForm/            # create/edit form (React Hook Form)
+│   ├── FormPage/              # shared create/edit page shell (title + ErrorMessage wrapper)
 │   ├── ErrorMessage/          # error alert (role="alert") + useErrorMessage hook
 │   ├── Spinner/                 # loading indicator (role="status")
 │   ├── Icon/                     # SVG icons centralized by name
