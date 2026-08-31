@@ -1,0 +1,50 @@
+name: Check dependabot ignore rules
+
+on:
+  schedule:
+    - cron: "0 6 1 * *"
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check if blocking peer dependencies were relaxed
+        id: check
+        run: |
+          jsx_a11y_range=$(npm view eslint-plugin-jsx-a11y@latest peerDependencies.eslint)
+          ts_eslint_range=$(npm view typescript-eslint@latest peerDependencies.typescript)
+
+          echo "jsx_a11y_range=$jsx_a11y_range" >> "$GITHUB_OUTPUT"
+          echo "ts_eslint_range=$ts_eslint_range" >> "$GITHUB_OUTPUT"
+
+          body=$(cat <<EOF
+          Monthly check of the major-version \`ignore\` rules in [\`dependabot.yml\`](../blob/master/.github/dependabot.yml).
+
+          | Rule | Blocking package (latest) | Current peer range | Still needs eslint/typescript major excluded? |
+          | --- | --- | --- | --- |
+          | \`eslint\` / \`@eslint/js\` major | eslint-plugin-jsx-a11y | \`$jsx_a11y_range\` | $(echo "$jsx_a11y_range" | grep -q '\^10\|>=10\|\^11' && echo "no - update available" || echo "yes") |
+          | \`typescript\` major | typescript-eslint | \`$ts_eslint_range\` | $(echo "$ts_eslint_range" | grep -q '<7\|<8\|7\.' && echo "check manually" || echo "yes") |
+          | \`eslint-plugin-react-hooks\` major | (not a peer-dep issue - recommended-latest exported legacy eslintrc \`plugins\` array on 7.1.1) | n/a | check manually - see https://github.com/facebook/react/blob/main/packages/eslint-plugin-react-hooks/CHANGELOG.md |
+
+          If a row now says "no" / "update available", remove that rule from \`dependabot.yml\`, let dependabot open the bump PR, and confirm CI passes before merging.
+          EOF
+          )
+          echo "body<<BODYEOF" >> "$GITHUB_OUTPUT"
+          echo "$body" >> "$GITHUB_OUTPUT"
+          echo "BODYEOF" >> "$GITHUB_OUTPUT"
+
+      - name: Open or update tracking issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BODY: ${{ steps.check.outputs.body }}
+        run: |
+          existing=$(gh issue list --search "Dependabot ignore rules check in:title" --state open --json number --jq '.[0].number')
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body "$BODY"
+          else
+            gh issue create --title "Dependabot ignore rules check" --body "$BODY" --label "dependencies"
+          fi
