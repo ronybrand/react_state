@@ -1,4 +1,5 @@
 import axios, { type AxiosRequestConfig } from 'axios';
+import { clearToken, getToken } from './tokenStorage';
 
 export const REQUEST_ID_HEADER = 'X-Request-Id';
 export const TIMEOUT_MS = 15000;
@@ -23,6 +24,12 @@ httpClient.interceptors.request.use((config) => {
   if (!config.headers.has(REQUEST_ID_HEADER)) {
     config.headers.set(REQUEST_ID_HEADER, crypto.randomUUID());
   }
+
+  const token = getToken();
+  if (token && !config.headers.has('Authorization')) {
+    config.headers.set('Authorization', `Bearer ${token}`);
+  }
+
   return config;
 });
 
@@ -32,8 +39,18 @@ function delay(ms: number) {
 
 httpClient.interceptors.response.use(undefined, async (error) => {
   const config: RetryConfig | undefined = error.config;
-
   const status: number | undefined = error.response?.status;
+
+  // Checked before the retry branch below so a 401 is never retried, and
+  // handled here (not left to page-level onError) because it's a global
+  // concern - any request can lose auth mid-session, not just the one the
+  // user happens to be looking at.
+  if (status === 401) {
+    clearToken();
+    window.location.href = '/login';
+    throw error;
+  }
+
   const retryable = !status || status >= 500;
 
   if (!config || config.method?.toLowerCase() !== 'get' || !retryable) {

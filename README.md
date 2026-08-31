@@ -66,21 +66,24 @@ stays public, matching the backend's own authorization rule.
 
 ```
 src/
-├── pages/               # StateList, CreateState, EditState (routes)
+├── pages/               # StateList, CreateState, EditState, Login (routes)
 ├── shared/
 │   ├── Layout/             # app shell: title bar + <Outlet/> + Footer
 │   ├── Footer/              # FE/BE build info, hides silently on failure
 │   ├── StateForm/            # create/edit form (React Hook Form)
 │   ├── FormPage/              # shared create/edit page shell (title + ErrorMessage wrapper)
 │   ├── ErrorMessage/          # error alert (role="alert") + useErrorMessage hook
-│   ├── Spinner/                 # loading indicator (role="status")
-│   ├── Icon/                     # SVG icons centralized by name
-│   └── RouteError/                # render-error fallback per route
+│   ├── ProtectedRoute/          # redirects to /login when the JWT is missing/expired
+│   ├── Spinner/                   # loading indicator (role="status")
+│   ├── Icon/                       # SVG icons centralized by name
+│   └── RouteError/                  # render-error fallback per route
 ├── hooks/                # TanStack Query hooks (list, get, create, update, delete,
-│                            frontend/backend version for the footer)
-├── lib/                  # httpClient (axios + interceptors), error extractors, formatDate
+│                            login, frontend/backend version for the footer)
+├── lib/                  # httpClient (axios + interceptors), tokenStorage (JWT in
+│                            localStorage), error extractors, formatDate
 ├── interfaces/           # State / NewState / FrontendVersion / BackendInfo domain types
-├── services/             # stateService + stateApiMapper (wire <-> domain), infoService
+├── services/             # stateService + stateApiMapper (wire <-> domain), authService,
+│                            infoService
 └── router.tsx              # routes with lazy loading, wrapped in Layout
 
 scripts/
