@@ -1,5 +1,9 @@
 const TOKEN_KEY = 'estado_jwt';
 
+// localStorage over an httpOnly cookie: accepted XSS exposure in exchange for
+// a stateless SPA client and no CSRF surface, consistent with the short
+// expiration and single-admin scope of the backend's ADR 0017 (see
+// isTokenValid below).
 export function getToken(): string | null {
   return localStorage.getItem(TOKEN_KEY);
 }
