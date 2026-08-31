@@ -1,28 +1,28 @@
 # CLAUDE.md
 
-## Antes de commitar
+## Before committing
 
-Sempre que criar ou editar arquivos fora do fluxo normal do `npm run lint`/`npm run format` (ex: `.github/workflows/*.yml`, `.github/dependabot.yml` escritos direto via Write/Edit), rode `npx prettier --write <arquivo>` antes de commitar. O CI roda `npm run format:check` e falha em arquivos com aspas/indentação fora do padrão do Prettier — já aconteceu com YAMLs de workflow criados manualmente.
+Whenever you create or edit files outside the normal `npm run lint`/`npm run format` flow (e.g. `.github/workflows/*.yml`, `.github/dependabot.yml` written directly via Write/Edit), run `npx prettier --write <file>` before committing. CI runs `npm run format:check` and fails on quote/indentation style that doesn't match Prettier's — this already happened with manually written workflow YAML files.
 
-O hook do husky (`lint-staged`) só formata arquivos que estão staged no commit atual; não confie nele para pegar formatação de arquivos criados em commits anteriores.
+Husky's `lint-staged` hook only formats files staged in the current commit; don't rely on it to catch formatting in files created in earlier commits.
 
-## dependabot.yml — regras de `ignore`
+## dependabot.yml — `ignore` rules
 
-Há 4 regras de `ignore` para major bumps em `.github/dependabot.yml`, cada uma resolvendo um `npm ci`/lint quebrado real (não teórico):
+There are 4 major-bump `ignore` rules in `.github/dependabot.yml`, each fixing a real (not theoretical) broken `npm ci`/lint:
 
-- `eslint` major — `eslint-plugin-jsx-a11y@6.10.2` (última versão publicada) trava peer em `eslint ^9`.
-- `@eslint/js` major — precisa andar em lockstep com `eslint` (senão `@eslint/js@10` exige `eslint ^10` sozinho e quebra do outro lado).
-- `typescript` major — `typescript-eslint@8.68.0` trava peer em `typescript <6.1.0`. Mesma restrição existe no repo irmão `angular_estado`.
-- `eslint-plugin-react-hooks` major — não é peer-dep, é bug funcional: o `recommended-latest` da v7.x exporta config no formato eslintrc antigo (`plugins` como array), incompatível com flat config do ESLint 9. Reproduz com `Oops! Something went wrong!` no `npm run lint`.
+- `eslint` major — `eslint-plugin-jsx-a11y@6.10.2` (latest published version) caps its peer dep at `eslint ^9`.
+- `@eslint/js` major — must move in lockstep with `eslint` (otherwise `@eslint/js@10` alone requires `eslint ^10` and breaks the other way).
+- `typescript` major — `typescript-eslint@8.68.0` caps its peer dep at `typescript <6.1.0`. Same constraint exists in the sibling `angular_estado` repo.
+- `eslint-plugin-react-hooks` major — not a peer-dep issue, it's a functional bug: v7.x's `recommended-latest` exports config in the legacy eslintrc format (`plugins` as an array), incompatible with ESLint 9's flat config. Reproduces as `Oops! Something went wrong!` on `npm run lint`.
 
-Existe um workflow mensal (`.github/workflows/dependabot-ignore-check.yml`, também disparável manualmente via `workflow_dispatch` na aba Actions) que reavalia essas 4 travas e abre/atualiza uma issue única no repo quando alguma pode ser removida. Não remova uma regra de `ignore` sem antes deixar o dependabot abrir o PR de bump e confirmar que o CI passa.
+There's a monthly workflow (`.github/workflows/dependabot-ignore-check.yml`, also triggerable manually via `workflow_dispatch` in the Actions tab) that re-evaluates these 4 constraints and opens/updates a single tracking issue when one becomes removable. Don't remove an `ignore` rule without first letting dependabot open the bump PR and confirming CI passes.
 
-## Repo irmão
+## Sibling repo
 
-`angular_estado` (sibling folder em `angular-projects/`) tem a mesma stack de CI (dependabot, CodeQL, auto-merge) — útil como referência, mas as constraints de peer dependency são diferentes por causa das libs usadas (React usa `eslint-plugin-jsx-a11y`, Angular usa `angular-eslint`). Não assuma que uma regra resolvida lá se aplica igual aqui sem checar a árvore de dependências.
+`angular_estado` (sibling folder under `angular-projects/`) has the same CI stack (dependabot, CodeQL, auto-merge) — useful as a reference, but its peer-dependency constraints differ because of the libraries in use (React uses `eslint-plugin-jsx-a11y`, Angular uses `angular-eslint`). Don't assume a rule solved there applies here without checking this repo's own dependency tree.
 
 ## CI (`.github/workflows/`)
 
-- `ci.yml`: `lint` (format:check + eslint), `test` (vitest + coverage → Codecov), `build` — todos rodam em PR e push para `master`.
-- `codeql.yml`: scan de segurança, roda em PR/push/semanal.
-- `dependabot-auto-merge.yml`: auto-merge só para PRs do dependabot que não sejam major bump, gated pelos checks obrigatórios.
+- `ci.yml`: `lint` (format:check + eslint), `test` (vitest + coverage → Codecov), `build` — all run on PR and push to `master`.
+- `codeql.yml`: security scan, runs on PR/push/weekly.
+- `dependabot-auto-merge.yml`: auto-merges only non-major dependabot PRs, gated on required checks.
