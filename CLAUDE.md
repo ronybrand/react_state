@@ -12,6 +12,14 @@ Each major-bump `ignore` rule in `.github/dependabot.yml` fixes a real (not theo
 
 `.github/workflows/dependabot-ignore-check.yml` (monthly + manually triggerable via `workflow_dispatch` in the Actions tab) re-evaluates those rules and opens/updates a single tracking issue when one becomes removable. Don't remove an `ignore` rule without first letting dependabot open the bump PR and confirming CI passes. When you add a new `ignore` rule, add a matching check to that workflow.
 
+## Coverage gate
+
+`codecov.yml` sets a 90% project / 80% patch coverage target, enforced via the
+`codecov/project` and `codecov/patch` PR status checks (requires the Codecov
+GitHub App to be installed on the repo — a token-only upload doesn't post PR
+statuses). Branch protection on `master` requires `build`, `lint`, `test`,
+`analyze`.
+
 ## CI (`.github/workflows/`)
 
 - `ci.yml`: `lint` (format:check + eslint), `test` (vitest + coverage → Codecov), `build` — all run on PR and push to `master`.
