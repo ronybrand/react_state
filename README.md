@@ -30,22 +30,21 @@ flowchart LR
     end
 
     Browser -- "/ (static)" --> Static
-    Browser -- "POST /api/auth/login" --> Rewrite
-    Browser -- "GET /api/estado (public)" --> Rewrite
-    Browser -- "POST/PUT/DELETE /api/estado (Bearer JWT)" --> Rewrite
+    Browser -- "/api/*" --> Rewrite
     Rewrite --> App
-    App -- "JWT (HS256)" --> Browser
     App --> DB
 ```
 
 The app never talks to the backend's own origin — `vercel.json` rewrites
 `/api/*` to it, so the browser only ever sees the deployment's own origin
-(see [Deployment](#deployment) below). Auth follows the same origin-proxy
-path: `POST /auth/login` returns a short-lived JWT, kept in `localStorage`
-and attached as `Authorization: Bearer <token>` by an axios request
-interceptor on state-mutating calls only (`POST`/`PUT`/`DELETE`) — listing
-and reading states stays public, matching the backend's own authorization
-rule.
+(see [Deployment](#deployment) below). This diagram is infra/network
+topology, not API routes — it doesn't distinguish `GET` from
+`POST`/`PUT`/`DELETE` on `/estado`, so JWT auth (an internal concern of
+the Spring Boot app itself) doesn't add a box or arrow here either.
+`POST /auth/login` returns a short-lived JWT, kept in `localStorage` and
+attached as `Authorization: Bearer <token>` by an axios request
+interceptor on state-mutating calls only — listing and reading states
+stays public, matching the backend's own authorization rule.
 
 ## Screenshots
 
