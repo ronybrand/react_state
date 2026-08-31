@@ -116,6 +116,18 @@ describe('httpClient', () => {
     expect(router.navigate).toHaveBeenCalledWith('/login', { replace: true });
   });
 
+  it('only navigates once when concurrent requests all 401', async () => {
+    setToken('token-existente');
+    mock.onGet('/state/a').reply(() => [401, { message: 'Nao autenticado' }]);
+    mock.onGet('/state/b').reply(() => [401, { message: 'Nao autenticado' }]);
+
+    await Promise.allSettled([httpClient.get('/state/a'), httpClient.get('/state/b')]);
+
+    expect(getToken()).toBeNull();
+    expect(router.navigate).toHaveBeenCalledTimes(1);
+    expect(router.navigate).toHaveBeenCalledWith('/login', { replace: true });
+  });
+
   it('does not clear the token or navigate on a 401 from the login request itself', async () => {
     setToken('token-existente');
     let attempts = 0;

@@ -50,7 +50,10 @@ httpClient.interceptors.response.use(undefined, async (error) => {
   // user happens to be looking at. The login request itself is excluded:
   // a wrong-password attempt also answers 401, and that's a normal form
   // error for Login.tsx to show, not a session loss to react to globally.
-  if (status === 401 && !config?.url?.endsWith(LOGIN_URL)) {
+  // Guards against concurrent in-flight requests each triggering their own
+  // clearToken()/navigate when a session expires: only the first 401 to see
+  // a token still present does the redirect, the rest are no-ops here.
+  if (status === 401 && !config?.url?.endsWith(LOGIN_URL) && getToken()) {
     clearToken();
     router.navigate('/login', { replace: true });
     throw error;
