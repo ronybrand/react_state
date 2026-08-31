@@ -19,6 +19,11 @@ updates:
         update-types: ['version-update:semver-major']
       - dependency-name: '@eslint/js'
         update-types: ['version-update:semver-major']
+      # typescript-eslint@8.68.0 caps its typescript peer dep at <6.1.0,
+      # so a typescript major bump breaks npm ci with ERESOLVE (same
+      # constraint already worked around in angular_estado).
+      - dependency-name: 'typescript'
+        update-types: ['version-update:semver-major']
 
   - package-ecosystem: github-actions
     directory: /
