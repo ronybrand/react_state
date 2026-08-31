@@ -41,6 +41,7 @@ export function Login() {
           </label>
           <input
             id="username"
+            autoComplete="username"
             className={inputClass}
             {...register('username', { required: true })}
           />
@@ -53,6 +54,7 @@ export function Login() {
           <input
             id="password"
             type="password"
+            autoComplete="current-password"
             className={inputClass}
             {...register('password', { required: true })}
           />
