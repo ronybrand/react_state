@@ -12,8 +12,8 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - name: Check if blocking peer dependencies were relaxed
-        id: check
+      - name: Check peer-dependency ranges
+        id: peers
         run: |
           jsx_a11y_range=$(npm view eslint-plugin-jsx-a11y@latest peerDependencies.eslint)
           ts_eslint_range=$(npm view typescript-eslint@latest peerDependencies.typescript)
@@ -21,16 +21,70 @@ jobs:
           echo "jsx_a11y_range=$jsx_a11y_range" >> "$GITHUB_OUTPUT"
           echo "ts_eslint_range=$ts_eslint_range" >> "$GITHUB_OUTPUT"
 
+      # eslint-plugin-react-hooks' block isn't a declared peer-dep range,
+      # it's the recommended-latest flat config shape breaking at runtime -
+      # so the only reliable check is to actually install the latest
+      # version in isolation and try to lint something with it.
+      - name: Smoke-test latest eslint-plugin-react-hooks against our flat config
+        id: react_hooks
+        run: |
+          set +e
+          tmp=$(mktemp -d)
+          cd "$tmp"
+          npm init -y >/dev/null 2>&1
+          npm install --no-save eslint@9 eslint-plugin-react-hooks@latest >/dev/null 2>&1
+
+          cat > eslint.config.mjs <<'EOF'
+          import reactHooks from 'eslint-plugin-react-hooks';
+          export default [
+            reactHooks.configs['recommended-latest'],
+            { files: ['**/*.js'] },
+          ];
+          EOF
+          echo "const x = 1;" > smoke.js
+
+          npx eslint smoke.js > lint-output.txt 2>&1
+          status=$?
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+          echo "output<<OUTEOF" >> "$GITHUB_OUTPUT"
+          tail -c 2000 lint-output.txt >> "$GITHUB_OUTPUT"
+          echo "OUTEOF" >> "$GITHUB_OUTPUT"
+
+      - name: Build report
+        id: report
+        env:
+          JSX_A11Y_RANGE: ${{ steps.peers.outputs.jsx_a11y_range }}
+          TS_ESLINT_RANGE: ${{ steps.peers.outputs.ts_eslint_range }}
+          RH_STATUS: ${{ steps.react_hooks.outputs.status }}
+          RH_OUTPUT: ${{ steps.react_hooks.outputs.output }}
+        run: |
+          eslint_ok="yes"
+          echo "$JSX_A11Y_RANGE" | grep -qE '\^10|>=10|\^11' && eslint_ok="no - update available"
+
+          ts_ok="yes"
+          echo "$TS_ESLINT_RANGE" | grep -qE '<7|<8' || ts_ok="no - update available"
+
+          rh_ok="yes"
+          [ "$RH_STATUS" = "0" ] && rh_ok="no - smoke test passed with latest version"
+
           body=$(cat <<EOF
           Monthly check of the major-version \`ignore\` rules in [\`dependabot.yml\`](../blob/master/.github/dependabot.yml).
 
-          | Rule | Blocking package (latest) | Current peer range | Still needs eslint/typescript major excluded? |
-          | --- | --- | --- | --- |
-          | \`eslint\` / \`@eslint/js\` major | eslint-plugin-jsx-a11y | \`$jsx_a11y_range\` | $(echo "$jsx_a11y_range" | grep -q '\^10\|>=10\|\^11' && echo "no - update available" || echo "yes") |
-          | \`typescript\` major | typescript-eslint | \`$ts_eslint_range\` | $(echo "$ts_eslint_range" | grep -q '<7\|<8\|7\.' && echo "check manually" || echo "yes") |
-          | \`eslint-plugin-react-hooks\` major | (not a peer-dep issue - recommended-latest exported legacy eslintrc \`plugins\` array on 7.1.1) | n/a | check manually - see https://github.com/facebook/react/blob/main/packages/eslint-plugin-react-hooks/CHANGELOG.md |
+          | Rule | Signal | Still needed? |
+          | --- | --- | --- |
+          | \`eslint\` / \`@eslint/js\` major | eslint-plugin-jsx-a11y\@latest peer range: \`$JSX_A11Y_RANGE\` | $eslint_ok |
+          | \`typescript\` major | typescript-eslint\@latest peer range: \`$TS_ESLINT_RANGE\` | $ts_ok |
+          | \`eslint-plugin-react-hooks\` major | smoke test (install latest + lint a file) exit code: \`$RH_STATUS\` | $rh_ok |
 
-          If a row now says "no" / "update available", remove that rule from \`dependabot.yml\`, let dependabot open the bump PR, and confirm CI passes before merging.
+          <details><summary>react-hooks smoke test output</summary>
+
+          \`\`\`
+          $RH_OUTPUT
+          \`\`\`
+
+          </details>
+
+          If a row says "no", remove that rule from \`dependabot.yml\`, let dependabot open the bump PR, and confirm CI passes before merging.
           EOF
           )
           echo "body<<BODYEOF" >> "$GITHUB_OUTPUT"
@@ -40,7 +94,7 @@ jobs:
       - name: Open or update tracking issue
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BODY: ${{ steps.check.outputs.body }}
+          BODY: ${{ steps.report.outputs.body }}
         run: |
           existing=$(gh issue list --search "Dependabot ignore rules check in:title" --state open --json number --jq '.[0].number')
           if [ -n "$existing" ]; then
