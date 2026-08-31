@@ -116,6 +116,33 @@ describe('httpClient', () => {
     await httpClient.post('/state/', {});
   });
 
+  it('does not attach Authorization to an absolute url outside the API boundary', async () => {
+    setToken('token-armazenado');
+    const base = new URL(httpClient.defaults.baseURL ?? '', window.location.origin)
+      .toString()
+      .replace(/\/$/, '');
+    const neighborUrl = `${base}evil.com/state`;
+    mock.onGet(neighborUrl).reply((config) => {
+      expect(config.headers?.['Authorization']).toBeUndefined();
+      return [200, {}];
+    });
+
+    await httpClient.get(neighborUrl);
+  });
+
+  it('attaches Authorization to an absolute url that is the API itself', async () => {
+    setToken('token-armazenado');
+    const base = new URL(httpClient.defaults.baseURL ?? '', window.location.origin)
+      .toString()
+      .replace(/\/$/, '');
+    mock.onGet(`${base}/state/`).reply((config) => {
+      expect(config.headers?.['Authorization']).toBe('Bearer token-armazenado');
+      return [200, []];
+    });
+
+    await httpClient.get(`${base}/state/`);
+  });
+
   it('clears the token and navigates to /login on a 401, without retrying', async () => {
     setToken('token-existente');
     let attempts = 0;
