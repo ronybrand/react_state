@@ -11,6 +11,42 @@ created/updated timestamps — consuming the [Estado project](https://github.com
 REST API at `/api/estado`. An alternate React frontend for the same backend, alongside the
 original [Angular one](https://github.com/ronybrand/angular_estado).
 
+## Architecture
+
+```mermaid
+flowchart LR
+    Browser["Browser"]
+
+    subgraph Vercel["Vercel"]
+        direction LR
+        Static["Static assets\n(React bundle)"]
+        Rewrite["Rewrite proxy\n(vercel.json)"]
+    end
+
+    subgraph EC2["EC2 (Docker)"]
+        direction LR
+        App["estado-app\n(Spring Boot + Spring Security)"]
+        DB[("Postgres")]
+    end
+
+    Browser -- "/ (static)" --> Static
+    Browser -- "POST /api/auth/login" --> Rewrite
+    Browser -- "GET /api/estado (public)" --> Rewrite
+    Browser -- "POST/PUT/DELETE /api/estado (Bearer JWT)" --> Rewrite
+    Rewrite --> App
+    App -- "JWT (HS256)" --> Browser
+    App --> DB
+```
+
+The app never talks to the backend's own origin — `vercel.json` rewrites
+`/api/*` to it, so the browser only ever sees the deployment's own origin
+(see [Deployment](#deployment) below). Auth follows the same origin-proxy
+path: `POST /auth/login` returns a short-lived JWT, kept in `localStorage`
+and attached as `Authorization: Bearer <token>` by an axios request
+interceptor on state-mutating calls only (`POST`/`PUT`/`DELETE`) — listing
+and reading states stays public, matching the backend's own authorization
+rule.
+
 ## Screenshots
 
 <img src="docs/screenshot-state-list.png" alt="States list" width="500" />
