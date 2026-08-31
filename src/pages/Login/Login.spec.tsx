@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Login } from './Login';
 import { authService } from '../../services/authService';
@@ -50,6 +50,30 @@ describe('Login', () => {
     await user.type(screen.getByLabelText('Password'), 'senha');
 
     expect(screen.getByRole('button', { name: 'Log in' })).toBeEnabled();
+  });
+
+  it('ignores a second submit fired before the pending state is committed', async () => {
+    let resolveLogin!: (value: { token: string; expiresInSeconds: number }) => void;
+    vi.mocked(authService.login).mockReturnValue(
+      new Promise((resolve) => {
+        resolveLogin = resolve;
+      }),
+    );
+    const user = userEvent.setup();
+
+    renderWithProviders(<Login />);
+
+    await user.type(screen.getByLabelText('Username'), 'admin');
+    await user.type(screen.getByLabelText('Password'), 'senha');
+    const submitButton = screen.getByRole('button', { name: 'Log in' });
+
+    fireEvent.click(submitButton);
+    fireEvent.click(submitButton);
+
+    await waitFor(() => expect(authService.login).toHaveBeenCalledTimes(1));
+
+    resolveLogin({ token: 'token', expiresInSeconds: 3600 });
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/'));
   });
 
   it('shows the backend error message when login fails', async () => {
