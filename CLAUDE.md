@@ -12,10 +12,6 @@ There are 4 major-bump `ignore` rules in `.github/dependabot.yml`, each fixing a
 
 There's a monthly workflow (`.github/workflows/dependabot-ignore-check.yml`, also triggerable manually via `workflow_dispatch` in the Actions tab) that re-evaluates these 4 constraints and opens/updates a single tracking issue when one becomes removable. Don't remove an `ignore` rule without first letting dependabot open the bump PR and confirming CI passes.
 
-## Sibling repo
-
-`angular_estado` (sibling folder under `angular-projects/`) has the same CI stack (dependabot, CodeQL, auto-merge) — useful as a reference, but its peer-dependency constraints differ because of the libraries in use (React uses `eslint-plugin-jsx-a11y`, Angular uses `angular-eslint`). Don't assume a rule solved there applies here without checking this repo's own dependency tree.
-
 ## CI (`.github/workflows/`)
 
 - `ci.yml`: `lint` (format:check + eslint), `test` (vitest + coverage → Codecov), `build` — all run on PR and push to `master`.
