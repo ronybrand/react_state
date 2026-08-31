@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router';
 import { FormPage } from '../../shared/FormPage/FormPage';
@@ -22,11 +23,21 @@ export function Login() {
     mode: 'onChange',
     defaultValues: { username: '', password: '' },
   });
+  // login.isPending only reflects the last committed render, so a second
+  // click/Enter fired before React re-renders would still see it as false -
+  // this ref is set synchronously and closes that gap.
+  const submitInFlight = useRef(false);
 
   function handleLogin(credentials: LoginCredentials) {
+    if (submitInFlight.current) {
+      return;
+    }
+    submitInFlight.current = true;
+
     login.mutate(credentials, {
       onSuccess: () => navigate('/'),
       onError: (err) => {
+        submitInFlight.current = false;
         setError(extractErrorMessage(err, 'Invalid username or password.'), extractRequestId(err));
       },
     });

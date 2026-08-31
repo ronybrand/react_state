@@ -15,6 +15,12 @@ export function clearToken(): void {
 // Decodes the JWT's exp claim client-side, no round trip to the backend -
 // the token is opaque beyond that (see the backend's ADR 0017: no refresh
 // token, a short expiration plus re-login is acceptable for a single admin).
+// This is a UI routing hint only (should the login screen show?), not an
+// authorization check: the signature is never verified, so a tampered
+// localStorage token with a forged future exp would pass. Every real
+// request is still authorized by the backend. Do not reuse this decode to
+// read claims (e.g. role) for access decisions - if that's ever needed,
+// revisit ADR 0017 instead.
 export function isTokenValid(): boolean {
   const token = getToken();
   if (!token) {

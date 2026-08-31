@@ -1,7 +1,6 @@
 import { httpClient } from '../lib/httpClient';
 import { setToken } from '../lib/tokenStorage';
-
-const BASE_URL = '/auth';
+import { LOGIN_PATH } from '../lib/apiPaths';
 
 export interface LoginCredentials {
   username: string;
@@ -15,7 +14,7 @@ interface LoginResponseDto {
 
 export const authService = {
   login: (credentials: LoginCredentials) =>
-    httpClient.post<LoginResponseDto>(`${BASE_URL}/login`, credentials).then((r) => {
+    httpClient.post<LoginResponseDto>(LOGIN_PATH, credentials).then((r) => {
       setToken(r.data.token);
       return r.data;
     }),
