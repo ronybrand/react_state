@@ -40,6 +40,18 @@ describe('Login', () => {
     );
   });
 
+  it('enables the submit button without requiring a blur first', async () => {
+    vi.mocked(authService.login).mockResolvedValue({ token: 'token', expiresInSeconds: 3600 });
+    const user = userEvent.setup();
+
+    renderWithProviders(<Login />);
+
+    await user.type(screen.getByLabelText('Username'), 'admin');
+    await user.type(screen.getByLabelText('Password'), 'senha');
+
+    expect(screen.getByRole('button', { name: 'Log in' })).toBeEnabled();
+  });
+
   it('shows the backend error message when login fails', async () => {
     vi.mocked(authService.login).mockRejectedValue(new Error('failed'));
     const user = userEvent.setup();

@@ -19,7 +19,7 @@ export function Login() {
     handleSubmit,
     formState: { isValid },
   } = useForm<LoginCredentials>({
-    mode: 'onBlur',
+    mode: 'onChange',
     defaultValues: { username: '', password: '' },
   });
 
