@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { ProtectedRoute } from './ProtectedRoute';
 import { clearToken, setToken } from '../../lib/tokenStorage';
@@ -26,6 +26,21 @@ function renderAt(initialEntry: string) {
 describe('ProtectedRoute', () => {
   afterEach(() => {
     clearToken();
+    vi.useRealTimers();
+  });
+
+  it('redirects to /login once the token expires while the route stays mounted', () => {
+    vi.useFakeTimers();
+    setToken(tokenWithExpiration(Math.floor(Date.now() / 1000) + 1));
+
+    renderAt('/protected');
+    expect(screen.getByText('Protected content')).toBeInTheDocument();
+
+    act(() => {
+      vi.advanceTimersByTime(6000);
+    });
+
+    expect(screen.getByText('Login page')).toBeInTheDocument();
   });
 
   it('redirects to /login when there is no valid token', () => {
