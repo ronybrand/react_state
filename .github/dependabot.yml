@@ -12,7 +12,12 @@ updates:
     ignore:
       # eslint-plugin-jsx-a11y@6.10.2 (latest) caps its eslint peer dep at
       # ^9, so an eslint major bump breaks npm ci with ERESOLVE.
+      # @eslint/js must stay in lockstep with eslint (it requires eslint
+      # ^10 once bumped), so it's ignored too - otherwise dependabot bumps
+      # them independently and breaks the peer resolution the other way.
       - dependency-name: 'eslint'
+        update-types: ['version-update:semver-major']
+      - dependency-name: '@eslint/js'
         update-types: ['version-update:semver-major']
 
   - package-ecosystem: github-actions
