@@ -7,7 +7,9 @@
 🔗 **[Live application](https://react-state-flax.vercel.app/)**
 
 CRUD for Brazilian federative units (states) — abbreviation, name, and
-created/updated timestamps — consuming a REST API at `/api/estado`.
+created/updated timestamps — consuming the [Estado project](https://github.com/ronybrand/estado)'s
+REST API at `/api/estado`. An alternate React frontend for the same backend, alongside the
+original [Angular one](https://github.com/ronybrand/angular_estado).
 
 ## Screenshots
 
