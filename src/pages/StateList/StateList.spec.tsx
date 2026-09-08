@@ -116,6 +116,19 @@ describe('StateList', () => {
     await waitFor(() => expect(stateService.delete).toHaveBeenCalledWith(1, expect.anything()));
   });
 
+  it('shows an error message when deletion fails', async () => {
+    vi.mocked(stateService.list).mockResolvedValue(states);
+    vi.mocked(stateService.delete).mockRejectedValue(new Error('failed'));
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const user = userEvent.setup();
+
+    renderWithProviders(<StateList />);
+
+    await user.click(await screen.findByRole('button', { name: 'Delete SP' }));
+
+    expect(await screen.findByText('Failed to delete state.')).toBeInTheDocument();
+  });
+
   it('does not delete when the confirmation is cancelled', async () => {
     vi.mocked(stateService.list).mockResolvedValue(states);
     vi.spyOn(window, 'confirm').mockReturnValue(false);

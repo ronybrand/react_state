@@ -66,6 +66,20 @@ describe('EditState', () => {
     expect(mockNavigate).toHaveBeenCalledWith('/');
   });
 
+  it('shows an error message when updating fails', async () => {
+    vi.mocked(stateService.get).mockResolvedValue(state);
+    vi.mocked(stateService.update).mockRejectedValue(new Error('failed'));
+    const user = userEvent.setup();
+
+    renderWithProviders(<EditState />);
+
+    await screen.findByDisplayValue('São Paulo');
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+
+    expect(await screen.findByText('Failed to update state.')).toBeInTheDocument();
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
   it('shows the backend error message when the fetch fails', async () => {
     vi.mocked(stateService.get).mockRejectedValue(new Error('failed'));
 
