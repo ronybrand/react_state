@@ -11,7 +11,7 @@ export function Footer() {
   }
 
   return (
-    <footer className="mt-4 py-3 text-center text-xs text-gray-400">
+    <footer className="mt-4 py-3 text-center text-xs text-gray-600">
       {frontendVersion && (
         <span>
           front {frontendVersion.commit} · {formatDate(frontendVersion.buildDate)}
