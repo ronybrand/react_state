@@ -15,6 +15,11 @@ export default defineConfig({
     },
   },
   test: {
+    // Scoped to src/ so Vitest doesn't also try to run e2e/*.spec.ts -
+    // those use @playwright/test's own test()/describe(), which throws
+    // ("did not expect test.describe() to be called here") when collected
+    // by Vitest's runner instead of Playwright's.
+    include: ['src/**/*.spec.{ts,tsx}'],
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./src/setupTests.ts'],
