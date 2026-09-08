@@ -28,16 +28,6 @@ export function toState(dto: StateApiDto): State {
   };
 }
 
-export function toStateApiDto(state: State): StateApiDto {
-  return {
-    id: state.id,
-    nome: state.name,
-    sigla: state.abbreviation,
-    dataHoraCadastro: state.createdAt,
-    dataHoraUltimaAtualizacao: state.updatedAt,
-  };
-}
-
 export function toNewStateApiDto(state: NewState): NewStateApiDto {
   return {
     nome: state.name,
@@ -45,8 +35,8 @@ export function toNewStateApiDto(state: NewState): NewStateApiDto {
   };
 }
 
-// id nao entra no corpo - PUT /estado/{id} identifica o recurso pela URL
-// (ver ADR 0018 no backend).
+// id is not part of the body - PUT /estado/{id} identifies the resource via
+// the URL (see ADR 0018 in the backend repo).
 export function toUpdateStateApiDto(state: State): UpdateStateApiDto {
   return {
     nome: state.name,

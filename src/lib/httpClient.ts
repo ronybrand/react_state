@@ -24,7 +24,7 @@ export const httpClient = axios.create({
 // though (bypassing baseURL entirely), so that case is checked against a
 // boundary - not just startsWith - so a neighboring origin like
 // `${baseURL}evil.com` isn't treated as the API itself.
-function ehRequisicaoDaApi(url: string | undefined): boolean {
+function isApiRequest(url: string | undefined): boolean {
   if (!url || !/^https?:\/\//i.test(url)) {
     return true;
   }
@@ -44,7 +44,7 @@ httpClient.interceptors.request.use((config) => {
   }
 
   const token = getToken();
-  if (token && !config.headers.has('Authorization') && ehRequisicaoDaApi(config.url)) {
+  if (token && !config.headers.has('Authorization') && isApiRequest(config.url)) {
     config.headers.set('Authorization', `Bearer ${token}`);
   }
 

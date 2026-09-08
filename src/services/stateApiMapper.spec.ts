@@ -1,4 +1,4 @@
-import { toNewStateApiDto, toState, toStateApiDto, type StateApiDto } from './stateApiMapper';
+import { toNewStateApiDto, toState, toUpdateStateApiDto, type StateApiDto } from './stateApiMapper';
 
 const dto: StateApiDto = {
   id: 1,
@@ -19,14 +19,17 @@ describe('stateApiMapper', () => {
     });
   });
 
-  it('maps a State back to the API dto shape', () => {
-    expect(toStateApiDto(toState(dto))).toEqual(dto);
-  });
-
   it('maps a NewState to the API dto shape used for creation', () => {
     expect(toNewStateApiDto({ name: 'Rio de Janeiro', abbreviation: 'RJ' })).toEqual({
       nome: 'Rio de Janeiro',
       sigla: 'RJ',
+    });
+  });
+
+  it('maps a State to the API dto shape used for updates, id excluded', () => {
+    expect(toUpdateStateApiDto(toState(dto))).toEqual({
+      nome: 'São Paulo',
+      sigla: 'SP',
     });
   });
 });
