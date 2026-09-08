@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router';
 import { FormPage } from '../../shared/FormPage/FormPage';
 import { useErrorMessage } from '../../shared/ErrorMessage/useErrorMessage';
 import { useLogin } from '../../hooks/useLogin';
-import { extractErrorMessage } from '../../lib/extractErrorMessage';
 import { extractRequestId } from '../../lib/extractRequestId';
 import type { LoginCredentials } from '../../services/authService';
 
@@ -38,7 +37,7 @@ export function Login() {
       onSuccess: () => navigate('/'),
       onError: (err) => {
         submitInFlight.current = false;
-        setError(extractErrorMessage(err, 'Invalid username or password.'), extractRequestId(err));
+        setError('Invalid username or password.', extractRequestId(err));
       },
     });
   }
