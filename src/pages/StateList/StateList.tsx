@@ -6,7 +6,6 @@ import { useErrorMessage } from '../../shared/ErrorMessage/useErrorMessage';
 import { ErrorMessage } from '../../shared/ErrorMessage/ErrorMessage';
 import { Spinner } from '../../shared/Spinner/Spinner';
 import { Icon } from '../../shared/Icon/Icon';
-import { extractErrorMessage } from '../../lib/extractErrorMessage';
 import { extractRequestId } from '../../lib/extractRequestId';
 import { formatDate } from '../../lib/formatDate';
 
@@ -17,10 +16,7 @@ export function StateList() {
 
   useEffect(() => {
     if (isError) {
-      setError(
-        extractErrorMessage(loadError, 'Failed to fetch states.'),
-        extractRequestId(loadError),
-      );
+      setError('Failed to fetch states.', extractRequestId(loadError));
     }
   }, [isError, loadError, setError]);
 
@@ -30,7 +26,7 @@ export function StateList() {
     }
     deleteState.mutate(id, {
       onError: (err) => {
-        setError(extractErrorMessage(err, 'Failed to delete state.'), extractRequestId(err));
+        setError('Failed to delete state.', extractRequestId(err));
       },
     });
   }

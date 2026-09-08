@@ -6,7 +6,6 @@ import { useErrorMessage } from '../../shared/ErrorMessage/useErrorMessage';
 import { Spinner } from '../../shared/Spinner/Spinner';
 import { useStateById } from '../../hooks/useStateById';
 import { useUpdateState } from '../../hooks/useUpdateState';
-import { extractErrorMessage } from '../../lib/extractErrorMessage';
 import { extractRequestId } from '../../lib/extractRequestId';
 import type { NewState } from '../../interfaces/state';
 
@@ -31,10 +30,7 @@ export function EditState() {
       return;
     }
     if (isError) {
-      setError(
-        extractErrorMessage(loadError, 'Failed to fetch state.'),
-        extractRequestId(loadError),
-      );
+      setError('Failed to fetch state.', extractRequestId(loadError));
       return;
     }
     clearError();
@@ -49,7 +45,7 @@ export function EditState() {
       {
         onSuccess: () => navigate('/'),
         onError: (err) => {
-          setError(extractErrorMessage(err, 'Failed to update state.'), extractRequestId(err));
+          setError('Failed to update state.', extractRequestId(err));
         },
       },
     );

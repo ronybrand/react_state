@@ -73,6 +73,27 @@ describe('StateList', () => {
     ).toBeInTheDocument();
   });
 
+  it('shows the English fallback, not the backend message, when the backend fails', async () => {
+    // The backend has no i18n - every message it sends is hardcoded
+    // Portuguese (see CustomGlobalExceptionHandler.java in the estado
+    // repo). This UI is English throughout, so showing that text verbatim
+    // would mix languages on screen - the fallback string is always used
+    // instead, the backend message is never rendered.
+    const error = new AxiosError('error', undefined, undefined, undefined, {
+      data: { message: 'Estado nao encontrado: id=999' },
+      status: 404,
+      statusText: 'Not Found',
+      headers: new AxiosHeaders(),
+      config: { headers: new AxiosHeaders() },
+    });
+    vi.mocked(stateService.list).mockRejectedValue(error);
+
+    renderWithProviders(<StateList />);
+
+    expect(await screen.findByText('Failed to fetch states.')).toBeInTheDocument();
+    expect(screen.queryByText('Estado nao encontrado: id=999')).not.toBeInTheDocument();
+  });
+
   it('labels the row action buttons with the state abbreviation', async () => {
     vi.mocked(stateService.list).mockResolvedValue(states);
 
