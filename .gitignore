@@ -13,6 +13,11 @@ dist-ssr
 coverage
 *.local
 
+# Playwright
+/playwright-report
+/test-results
+/playwright/.cache
+
 # Locally installed agent skills (npx skills add)
 .agents
 .claude
