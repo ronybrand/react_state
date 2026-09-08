@@ -12,6 +12,11 @@ export interface StateApiDto {
 }
 
 export type NewStateApiDto = Pick<StateApiDto, 'nome' | 'sigla'>;
+export type UpdateStateApiDto = Pick<StateApiDto, 'nome' | 'sigla'>;
+
+export interface PageApiDto<T> {
+  content: T[];
+}
 
 export function toState(dto: StateApiDto): State {
   return {
@@ -34,6 +39,15 @@ export function toStateApiDto(state: State): StateApiDto {
 }
 
 export function toNewStateApiDto(state: NewState): NewStateApiDto {
+  return {
+    nome: state.name,
+    sigla: state.abbreviation,
+  };
+}
+
+// id nao entra no corpo - PUT /estado/{id} identifica o recurso pela URL
+// (ver ADR 0018 no backend).
+export function toUpdateStateApiDto(state: State): UpdateStateApiDto {
   return {
     nome: state.name,
     sigla: state.abbreviation,
