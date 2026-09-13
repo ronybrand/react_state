@@ -46,6 +46,9 @@ attached as `Authorization: Bearer <token>` by an axios request
 interceptor on state-mutating calls only — listing and reading states
 stays public, matching the backend's own authorization rule.
 
+Demo credentials (intentionally public): see the backend's
+[`estado`](https://github.com/ronybrand/estado#readme) README.
+
 ## Screenshots
 
 <img src="docs/screenshot-state-list.png" alt="States list" width="500" />
