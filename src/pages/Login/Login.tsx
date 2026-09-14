@@ -74,7 +74,7 @@ export function Login() {
           <button
             type="submit"
             disabled={!isValid || login.isPending}
-            className="bg-brand hover:bg-brand-dark inline-flex items-center gap-1 rounded px-4 py-1.5 text-white disabled:opacity-50"
+            className="bg-brand hover:bg-brand-dark inline-flex cursor-pointer items-center gap-1 rounded px-4 py-1.5 text-white disabled:cursor-default disabled:opacity-50"
           >
             Log in
           </button>
