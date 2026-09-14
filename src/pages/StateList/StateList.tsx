@@ -6,6 +6,7 @@ import { useErrorMessage } from '../../shared/ErrorMessage/useErrorMessage';
 import { ErrorMessage } from '../../shared/ErrorMessage/ErrorMessage';
 import { Spinner } from '../../shared/Spinner/Spinner';
 import { Icon } from '../../shared/Icon/Icon';
+import { ConfirmDialog, type ConfirmDialogHandle } from '../../shared/ConfirmDialog/ConfirmDialog';
 import { extractRequestId } from '../../lib/extractRequestId';
 import { formatDate } from '../../lib/formatDate';
 
@@ -30,6 +31,10 @@ export function StateList() {
   } = useStates(debouncedSearch || undefined, sort);
   const deleteState = useDeleteState();
   const { error, requestId, setError } = useErrorMessage();
+  const confirmDialog = useRef<ConfirmDialogHandle>(null);
+  const [pendingDelete, setPendingDelete] = useState<{ id: number; abbreviation: string } | null>(
+    null,
+  );
 
   useEffect(() => {
     if (isError) {
@@ -74,10 +79,15 @@ export function StateList() {
   }
 
   function handleDelete(id: number, abbreviation: string) {
-    if (!window.confirm(`Are you sure you want to delete ${abbreviation}?`)) {
+    setPendingDelete({ id, abbreviation });
+    confirmDialog.current?.open();
+  }
+
+  function confirmDeletion() {
+    if (!pendingDelete) {
       return;
     }
-    deleteState.mutate(id, {
+    deleteState.mutate(pendingDelete.id, {
       onError: (err) => {
         setError('Failed to delete state.', extractRequestId(err));
       },
@@ -208,6 +218,16 @@ export function StateList() {
           )}
         </div>
       </div>
+      <ConfirmDialog
+        ref={confirmDialog}
+        message={
+          pendingDelete
+            ? `Are you sure you want to delete ${pendingDelete.abbreviation}?`
+            : 'Are you sure you want to delete this state?'
+        }
+        onConfirm={confirmDeletion}
+        onCancel={() => setPendingDelete(null)}
+      />
     </div>
   );
 }

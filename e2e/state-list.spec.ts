@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { STATES, mockStateList, mockDeleteState, mockError } from './fixtures/states';
+import { STATES, pageOf, mockStateList, mockDeleteState, mockError } from './fixtures/states';
 
 test.describe('State list', () => {
   test('shows a loading indicator, then the states once the response arrives', async ({ page }) => {
@@ -31,17 +31,29 @@ test.describe('State list', () => {
 
   test('deletes a state after confirmation', async ({ page }) => {
     let requestedDelete = false;
-    await mockStateList(page, STATES);
+    let states = [...STATES];
+    await page.route('**/api/estado/paginado**', (route) => {
+      if (route.request().method() !== 'GET') {
+        return route.fallback();
+      }
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(pageOf(states)),
+      });
+    });
     await mockDeleteState(page, 1, () => {
       requestedDelete = true;
+      states = states.filter((state) => state.id !== 1);
     });
 
     await page.goto('/');
     await expect(page.getByRole('table')).toBeVisible();
 
-    page.once('dialog', (dialog) => dialog.accept());
     await page.getByRole('button', { name: 'Delete SP' }).click();
+    await page.getByRole('button', { name: 'Confirm' }).click();
 
+    await expect(page.getByRole('row', { name: /SP.*São Paulo/ })).not.toBeVisible();
     expect(requestedDelete).toBe(true);
   });
 
@@ -55,8 +67,8 @@ test.describe('State list', () => {
     await page.goto('/');
     await expect(page.getByRole('table')).toBeVisible();
 
-    page.once('dialog', (dialog) => dialog.dismiss());
     await page.getByRole('button', { name: 'Delete SP' }).click();
+    await page.getByRole('button', { name: 'Cancel' }).click();
 
     await expect(page.getByRole('row', { name: /SP.*São Paulo/ })).toBeVisible();
     expect(requestedDelete).toBe(false);
@@ -71,8 +83,8 @@ test.describe('State list', () => {
     await page.goto('/');
     await expect(page.getByRole('table')).toBeVisible();
 
-    page.once('dialog', (dialog) => dialog.accept());
     await page.getByRole('button', { name: 'Delete SP' }).click();
+    await page.getByRole('button', { name: 'Confirm' }).click();
 
     await expect(page.getByRole('alert')).toContainText('Failed to delete state.');
     await expect(page.getByRole('row', { name: /SP.*São Paulo/ })).toBeVisible();
