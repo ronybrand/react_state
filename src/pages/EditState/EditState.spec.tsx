@@ -74,6 +74,8 @@ describe('EditState', () => {
     renderWithProviders(<EditState />);
 
     await screen.findByDisplayValue('São Paulo');
+    await user.type(screen.getByLabelText('Name'), ' Updated');
+    await user.tab();
     await user.click(screen.getByRole('button', { name: 'Save' }));
 
     expect(await screen.findByText('Failed to update state.')).toBeInTheDocument();

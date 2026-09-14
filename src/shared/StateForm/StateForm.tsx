@@ -16,7 +16,7 @@ export function StateForm({ initialValues, disabled = false, onSubmitState }: St
   const {
     register,
     handleSubmit,
-    formState: { errors, isValid },
+    formState: { errors, isValid, isDirty },
   } = useForm<NewState>({
     mode: 'onBlur',
     resolver: zodResolver(newStateSchema),
@@ -68,7 +68,7 @@ export function StateForm({ initialValues, disabled = false, onSubmitState }: St
       <div className="text-right">
         <button
           type="submit"
-          disabled={!isValid || disabled}
+          disabled={!isValid || disabled || !isDirty}
           className="bg-brand hover:bg-brand-dark inline-flex items-center gap-1 rounded px-4 py-1.5 text-white disabled:opacity-50"
         >
           <Icon name="check" size={14} />
