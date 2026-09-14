@@ -146,6 +146,44 @@ describe('StateForm', () => {
     expect(screen.getByRole('button', { name: 'Save' })).toBeEnabled();
   });
 
+  it('shows a specific message when the abbreviation duplicates an existing one', async () => {
+    const user = userEvent.setup();
+    render(<StateForm existingAbbreviations={['SP', 'RJ']} onSubmitState={vi.fn()} />);
+
+    await user.type(screen.getByLabelText('Abbreviation'), 'SP');
+    await user.tab();
+
+    expect(screen.getByText('A state with this abbreviation already exists.')).toBeInTheDocument();
+  });
+
+  it('does not flag a duplicate when the abbreviation matches initialValues (editing without changing it)', async () => {
+    const user = userEvent.setup();
+    render(
+      <StateForm
+        initialValues={{ abbreviation: 'SP', name: 'São Paulo' }}
+        existingAbbreviations={['SP', 'RJ']}
+        onSubmitState={vi.fn()}
+      />,
+    );
+
+    await user.click(screen.getByLabelText('Name'));
+    await user.tab();
+
+    expect(
+      screen.queryByText('A state with this abbreviation already exists.'),
+    ).not.toBeInTheDocument();
+  });
+
+  it('uppercases the abbreviation as the user types', async () => {
+    const user = userEvent.setup();
+    render(<StateForm onSubmitState={vi.fn()} />);
+
+    const abbreviation = screen.getByLabelText('Abbreviation');
+    await user.type(abbreviation, 'sp');
+
+    expect(abbreviation).toHaveValue('SP');
+  });
+
   it('calls onSubmitState with the form data on submit', async () => {
     const user = userEvent.setup();
     const onSubmitState = vi.fn();

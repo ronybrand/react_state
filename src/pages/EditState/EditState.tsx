@@ -5,6 +5,7 @@ import { FormPage } from '../../shared/FormPage/FormPage';
 import { useErrorMessage } from '../../shared/ErrorMessage/useErrorMessage';
 import { Spinner } from '../../shared/Spinner/Spinner';
 import { useStateById } from '../../hooks/useStateById';
+import { useStates } from '../../hooks/useStates';
 import { useUpdateState } from '../../hooks/useUpdateState';
 import { extractRequestId } from '../../lib/extractRequestId';
 import type { NewState } from '../../interfaces/state';
@@ -22,6 +23,7 @@ export function EditState() {
     error: loadError,
   } = useStateById(stateId, { enabled: validId });
   const updateState = useUpdateState();
+  const { data: states } = useStates();
   const { error, requestId, setError, clearError } = useErrorMessage();
 
   useEffect(() => {
@@ -58,6 +60,7 @@ export function EditState() {
         <StateForm
           initialValues={{ abbreviation: state.abbreviation, name: state.name }}
           disabled={updateState.isPending}
+          existingAbbreviations={states?.map((s) => s.abbreviation)}
           onSubmitState={handleSubmitState}
         />
       )}

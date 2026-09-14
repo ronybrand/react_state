@@ -7,6 +7,7 @@ import { renderWithProviders } from '../../testUtils';
 vi.mock('../../services/stateService', () => ({
   stateService: {
     create: vi.fn(),
+    list: vi.fn().mockResolvedValue([]),
   },
 }));
 
@@ -19,7 +20,31 @@ vi.mock('react-router', async (importOriginal) => {
 describe('CreateState', () => {
   beforeEach(() => {
     vi.mocked(stateService.create).mockReset();
+    vi.mocked(stateService.list).mockReset().mockResolvedValue([]);
     mockNavigate.mockReset();
+  });
+
+  it('rejects an abbreviation that already exists among the fetched states', async () => {
+    vi.mocked(stateService.list).mockResolvedValue([
+      {
+        id: 1,
+        abbreviation: 'RJ',
+        name: 'Rio de Janeiro',
+        createdAt: '2024-01-01T10:00:00Z',
+        updatedAt: null,
+      },
+    ]);
+    const user = userEvent.setup();
+
+    renderWithProviders(<CreateState />);
+
+    await user.type(screen.getByLabelText('Abbreviation'), 'RJ');
+    await user.tab();
+
+    expect(
+      await screen.findByText('A state with this abbreviation already exists.'),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
   });
 
   it('creates the state and navigates to the list', async () => {

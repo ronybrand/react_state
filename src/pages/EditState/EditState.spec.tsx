@@ -9,6 +9,7 @@ vi.mock('../../services/stateService', () => ({
   stateService: {
     get: vi.fn(),
     update: vi.fn(),
+    list: vi.fn().mockResolvedValue([]),
   },
 }));
 
@@ -31,8 +32,37 @@ describe('EditState', () => {
   beforeEach(() => {
     vi.mocked(stateService.get).mockReset();
     vi.mocked(stateService.update).mockReset();
+    vi.mocked(stateService.list).mockReset().mockResolvedValue([]);
     mockNavigate.mockReset();
     mockUseParams.mockReturnValue({ id: '1' });
+  });
+
+  it('rejects an abbreviation that duplicates another already-registered state', async () => {
+    vi.mocked(stateService.get).mockResolvedValue(state);
+    vi.mocked(stateService.list).mockResolvedValue([
+      state,
+      {
+        id: 2,
+        abbreviation: 'RJ',
+        name: 'Rio de Janeiro',
+        createdAt: '2024-01-01T10:00:00Z',
+        updatedAt: null,
+      },
+    ]);
+    const user = userEvent.setup();
+
+    renderWithProviders(<EditState />);
+
+    await screen.findByDisplayValue('São Paulo');
+    const abbreviation = screen.getByLabelText('Abbreviation');
+    await user.clear(abbreviation);
+    await user.type(abbreviation, 'RJ');
+    await user.tab();
+
+    expect(
+      await screen.findByText('A state with this abbreviation already exists.'),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
   });
 
   it('fills the form as soon as the state arrives asynchronously', async () => {
