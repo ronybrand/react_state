@@ -5,26 +5,26 @@ import type { BackendInfo } from '../interfaces/backendInfo';
 
 describe('infoService', () => {
   describe('getFrontendVersion', () => {
-    const originalFetch = global.fetch;
+    const originalFetch = globalThis.fetch;
 
     afterEach(() => {
-      global.fetch = originalFetch;
+      globalThis.fetch = originalFetch;
     });
 
     it('resolves with the parsed version.json when the fetch succeeds', async () => {
-      global.fetch = vi.fn().mockResolvedValue({
+      globalThis.fetch = vi.fn().mockResolvedValue({
         ok: true,
         json: () => Promise.resolve({ commit: 'abc1234', buildDate: '2026-01-01T00:00:00Z' }),
       } as Response);
 
       const result = await infoService.getFrontendVersion();
 
-      expect(global.fetch).toHaveBeenCalledWith('/version.json');
+      expect(globalThis.fetch).toHaveBeenCalledWith('/version.json');
       expect(result).toEqual({ commit: 'abc1234', buildDate: '2026-01-01T00:00:00Z' });
     });
 
     it('throws when the response is not ok', async () => {
-      global.fetch = vi.fn().mockResolvedValue({ ok: false, status: 404 } as Response);
+      globalThis.fetch = vi.fn().mockResolvedValue({ ok: false, status: 404 } as Response);
 
       await expect(infoService.getFrontendVersion()).rejects.toThrow(
         'Failed to load version.json: 404',
