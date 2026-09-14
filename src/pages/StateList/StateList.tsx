@@ -66,6 +66,13 @@ export function StateList() {
     }
   }
 
+  function ariaSort(field: SortField): 'ascending' | 'descending' | 'none' {
+    if (sortField !== field) {
+      return 'none';
+    }
+    return sortDirection === 'asc' ? 'ascending' : 'descending';
+  }
+
   function handleDelete(id: number, abbreviation: string) {
     if (!window.confirm(`Are you sure you want to delete ${abbreviation}?`)) {
       return;
@@ -128,7 +135,7 @@ export function StateList() {
             <table className="w-full text-center text-sm">
               <thead>
                 <tr className="border-b border-gray-200">
-                  <th className="p-2">
+                  <th className="p-2" aria-sort={ariaSort('sigla')}>
                     <button
                       type="button"
                       onClick={() => handleSort('sigla')}
@@ -143,7 +150,7 @@ export function StateList() {
                       )}
                     </button>
                   </th>
-                  <th className="p-2">
+                  <th className="p-2" aria-sort={ariaSort('nome')}>
                     <button
                       type="button"
                       onClick={() => handleSort('nome')}
