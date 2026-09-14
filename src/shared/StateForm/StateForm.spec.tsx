@@ -73,12 +73,14 @@ describe('StateForm', () => {
     const abbreviation = screen.getByLabelText('Abbreviation');
     await user.type(abbreviation, 'S');
     await user.tab();
-    expect(screen.getByText('Enter the state abbreviation.')).toBeInTheDocument();
+    expect(screen.getByText('Enter the state abbreviation with 2 letters.')).toBeInTheDocument();
 
     await user.click(abbreviation);
     await user.type(abbreviation, 'P');
 
-    expect(screen.queryByText('Enter the state abbreviation.')).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('Enter the state abbreviation with 2 letters.'),
+    ).not.toBeInTheDocument();
   });
 
   it('keeps the button disabled when the disabled prop is true, even with a valid form', async () => {
