@@ -50,6 +50,17 @@ test.describe('Accessibility (axe-core, WCAG 2.1 A/AA)', () => {
     expect(results.violations).toEqual([]);
   });
 
+  test('delete confirmation dialog has no violations', async ({ page }) => {
+    await mockStateList(page, STATES);
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Delete SP' }).click();
+    await expect(page.getByRole('button', { name: 'Confirm' })).toBeVisible();
+
+    const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
+
+    expect(results.violations).toEqual([]);
+  });
+
   test('empty state list has no violations', async ({ page }) => {
     await mockStateList(page, []);
     await page.goto('/');
