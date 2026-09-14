@@ -129,6 +129,23 @@ describe('StateForm', () => {
     expect(screen.getByRole('button', { name: 'Save' })).toBeEnabled();
   });
 
+  it('enables the save button when only abbreviation differs from initialValues', async () => {
+    const user = userEvent.setup();
+    render(
+      <StateForm
+        initialValues={{ abbreviation: 'SP', name: 'São Paulo' }}
+        onSubmitState={vi.fn()}
+      />,
+    );
+
+    const abbreviation = screen.getByLabelText('Abbreviation');
+    await user.clear(abbreviation);
+    await user.type(abbreviation, 'RJ');
+    await user.tab();
+
+    expect(screen.getByRole('button', { name: 'Save' })).toBeEnabled();
+  });
+
   it('calls onSubmitState with the form data on submit', async () => {
     const user = userEvent.setup();
     const onSubmitState = vi.fn();
