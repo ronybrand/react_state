@@ -132,7 +132,7 @@ export function StateList() {
                     <button
                       type="button"
                       onClick={() => handleSort('sigla')}
-                      className="inline-flex items-center gap-1 font-semibold"
+                      className="inline-flex cursor-pointer items-center gap-1 font-semibold"
                     >
                       Abbreviation
                       {sortField === 'sigla' && (
@@ -147,7 +147,7 @@ export function StateList() {
                     <button
                       type="button"
                       onClick={() => handleSort('nome')}
-                      className="inline-flex items-center gap-1 font-semibold"
+                      className="inline-flex cursor-pointer items-center gap-1 font-semibold"
                     >
                       Name
                       {sortField === 'nome' && (
@@ -188,7 +188,7 @@ export function StateList() {
                         aria-label={`Delete ${state.abbreviation}`}
                         disabled={deleteState.isPending}
                         onClick={() => handleDelete(state.id, state.abbreviation)}
-                        className="bg-danger inline-flex items-center gap-1 rounded px-2 py-1 text-white hover:opacity-90 disabled:opacity-50"
+                        className="bg-danger inline-flex cursor-pointer items-center gap-1 rounded px-2 py-1 text-white hover:opacity-90 disabled:cursor-default disabled:opacity-50"
                       >
                         <Icon name="trash" size={14} />
                         <span className="hidden md:inline">Delete</span>
