@@ -16,9 +16,13 @@ export const stateService = {
   // size=100 covers the whole dataset (27 Brazilian states) in a single
   // page - the backend removed the unpaginated GET /estado (ADR 0018),
   // /paginado is now the only listing endpoint.
-  list: () =>
+  // busca/sort only enter the query string when provided - the backend
+  // treats their absence as "no filter"/"no explicit ordering".
+  list: (busca?: string, sort?: string) =>
     httpClient
-      .get<PageApiDto<StateApiDto>>(`${BASE_URL}/paginado`, { params: { size: 100 } })
+      .get<PageApiDto<StateApiDto>>(`${BASE_URL}/paginado`, {
+        params: { size: 100, ...(busca ? { busca } : {}), ...(sort ? { sort } : {}) },
+      })
       .then((r) => r.data.content.map(toState)),
 
   get: (id: number) =>

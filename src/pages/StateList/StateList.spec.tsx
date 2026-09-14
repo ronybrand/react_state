@@ -29,6 +29,12 @@ describe('StateList', () => {
     vi.mocked(stateService.delete).mockReset();
   });
 
+  afterEach(() => {
+    // Guards against fake timers leaking into the next test if a
+    // fake-timer test fails before reaching its own vi.useRealTimers().
+    vi.useRealTimers();
+  });
+
   it('shows the states as soon as the fetch resolves', async () => {
     vi.mocked(stateService.list).mockResolvedValue(states);
 
@@ -139,5 +145,41 @@ describe('StateList', () => {
     await user.click(await screen.findByRole('button', { name: 'Delete SP' }));
 
     expect(stateService.delete).not.toHaveBeenCalled();
+  });
+
+  it('debounces the search box, calling list once with the latest value after 300ms', async () => {
+    // Real timers here, not fake ones: userEvent.type's internal per-key
+    // delay plus React Query's own scheduling made fake timers + act()
+    // brittle (hangs) in this combination. The 300ms debounce is short
+    // enough to just let it elapse for real.
+    vi.mocked(stateService.list).mockResolvedValue(states);
+    const user = userEvent.setup();
+
+    renderWithProviders(<StateList />);
+    await screen.findByText('São Paulo');
+    vi.mocked(stateService.list).mockClear();
+
+    const input = screen.getByPlaceholderText('Search by name or abbreviation...');
+    await user.type(input, 'santa');
+
+    expect(stateService.list).not.toHaveBeenCalled();
+    await waitFor(() => expect(stateService.list).toHaveBeenCalledWith('santa', undefined), {
+      timeout: 1000,
+    });
+  });
+
+  it('sorts by abbreviation on first click, and toggles direction on the next click', async () => {
+    vi.mocked(stateService.list).mockResolvedValue(states);
+    const user = userEvent.setup();
+
+    renderWithProviders(<StateList />);
+    await screen.findByText('São Paulo');
+    vi.mocked(stateService.list).mockClear();
+
+    await user.click(screen.getByRole('button', { name: /Abbreviation/i }));
+    await waitFor(() => expect(stateService.list).toHaveBeenCalledWith(undefined, 'sigla,asc'));
+
+    await user.click(screen.getByRole('button', { name: /Abbreviation/i }));
+    await waitFor(() => expect(stateService.list).toHaveBeenCalledWith(undefined, 'sigla,desc'));
   });
 });
