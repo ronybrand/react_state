@@ -9,7 +9,9 @@
 CRUD for Brazilian federative units (states) — abbreviation, name, and
 created/updated timestamps — consuming the [Estado project](https://github.com/ronybrand/estado)'s
 REST API at `/api/estado`. An alternate React frontend for the same backend, alongside the
-original [Angular one](https://github.com/ronybrand/angular_estado).
+original [Angular one](https://github.com/ronybrand/angular_estado). See the backend's
+[CASE_STUDY.md](https://github.com/ronybrand/estado/blob/master/CASE_STUDY.md) for the
+end-to-end system write-up (architecture, decisions, trade-offs).
 
 ## Architecture
 
