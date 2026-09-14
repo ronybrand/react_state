@@ -45,6 +45,39 @@ describe('stateService', () => {
     ]);
   });
 
+  it('list includes busca in the query string when a filter is provided', async () => {
+    mock.onGet('/estado/paginado', { params: { size: 100, busca: 'santa' } }).reply(200, {
+      content: [stateDto],
+      page: { size: 100, number: 0, totalElements: 1, totalPages: 1 },
+    });
+
+    const result = await stateService.list('santa');
+
+    expect(result).toHaveLength(1);
+  });
+
+  it('list includes sort in the query string when provided', async () => {
+    mock.onGet('/estado/paginado', { params: { size: 100, sort: 'nome,asc' } }).reply(200, {
+      content: [stateDto],
+      page: { size: 100, number: 0, totalElements: 1, totalPages: 1 },
+    });
+
+    const result = await stateService.list(undefined, 'nome,asc');
+
+    expect(result).toHaveLength(1);
+  });
+
+  it('list omits busca/sort from the query string when not provided', async () => {
+    mock.onGet('/estado/paginado', { params: { size: 100 } }).reply(200, {
+      content: [stateDto],
+      page: { size: 100, number: 0, totalElements: 1, totalPages: 1 },
+    });
+
+    const result = await stateService.list();
+
+    expect(result).toHaveLength(1);
+  });
+
   it('update PUTs to /estado/{id} with only nome/sigla in the body', async () => {
     const state: State = {
       id: 1,

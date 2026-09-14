@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import { useStates } from '../../hooks/useStates';
 import { useDeleteState } from '../../hooks/useDeleteState';
@@ -9,8 +9,25 @@ import { Icon } from '../../shared/Icon/Icon';
 import { extractRequestId } from '../../lib/extractRequestId';
 import { formatDate } from '../../lib/formatDate';
 
+type SortField = 'nome' | 'sigla';
+type SortDirection = 'asc' | 'desc';
+
+const DEBOUNCE_MS = 300;
+
 export function StateList() {
-  const { data: states = [], isLoading, isError, error: loadError } = useStates();
+  const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [sortField, setSortField] = useState<SortField | null>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const sort = sortField ? `${sortField},${sortDirection}` : undefined;
+  const {
+    data: states = [],
+    isLoading,
+    isError,
+    error: loadError,
+  } = useStates(debouncedSearch || undefined, sort);
   const deleteState = useDeleteState();
   const { error, requestId, setError } = useErrorMessage();
 
@@ -19,6 +36,35 @@ export function StateList() {
       setError('Failed to fetch states.', extractRequestId(loadError));
     }
   }, [isError, loadError, setError]);
+
+  // Manual debounce with setTimeout instead of a library/rxjs-like operator:
+  // it's a single simple interaction (one search box), nowhere else in the
+  // project debounces anything, so a dependency just for this would be
+  // overkill.
+  useEffect(() => {
+    return () => {
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+      }
+    };
+  }, []);
+
+  function handleSearchChange(value: string) {
+    setSearch(value);
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+    }
+    debounceTimer.current = setTimeout(() => setDebouncedSearch(value), DEBOUNCE_MS);
+  }
+
+  function handleSort(field: SortField) {
+    if (sortField === field) {
+      setSortDirection((direction) => (direction === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  }
 
   function handleDelete(id: number, abbreviation: string) {
     if (!window.confirm(`Are you sure you want to delete ${abbreviation}?`)) {
@@ -50,6 +96,20 @@ export function StateList() {
           States
         </div>
         <div className="p-4">
+          <div className="mb-3">
+            <label htmlFor="state-search" className="sr-only">
+              Search by name or abbreviation
+            </label>
+            <input
+              id="state-search"
+              type="search"
+              placeholder="Search by name or abbreviation..."
+              value={search}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              className="w-full rounded border border-gray-300 px-3 py-1.5 text-sm"
+            />
+          </div>
+
           {isLoading && <Spinner />}
 
           {!isLoading && states.length === 0 && (
@@ -68,8 +128,36 @@ export function StateList() {
             <table className="w-full text-center text-sm">
               <thead>
                 <tr className="border-b border-gray-200">
-                  <th className="p-2">Abbreviation</th>
-                  <th className="p-2">Name</th>
+                  <th className="p-2">
+                    <button
+                      type="button"
+                      onClick={() => handleSort('sigla')}
+                      className="inline-flex items-center gap-1 font-semibold"
+                    >
+                      Abbreviation
+                      {sortField === 'sigla' && (
+                        <Icon
+                          name={sortDirection === 'asc' ? 'chevron-up' : 'chevron-down'}
+                          size={12}
+                        />
+                      )}
+                    </button>
+                  </th>
+                  <th className="p-2">
+                    <button
+                      type="button"
+                      onClick={() => handleSort('nome')}
+                      className="inline-flex items-center gap-1 font-semibold"
+                    >
+                      Name
+                      {sortField === 'nome' && (
+                        <Icon
+                          name={sortDirection === 'asc' ? 'chevron-up' : 'chevron-down'}
+                          size={12}
+                        />
+                      )}
+                    </button>
+                  </th>
                   <th className="hidden p-2 md:table-cell">Created</th>
                   <th className="hidden p-2 md:table-cell">Last Updated</th>
                   <th className="p-2">Actions</th>
