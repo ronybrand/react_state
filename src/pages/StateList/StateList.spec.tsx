@@ -182,4 +182,40 @@ describe('StateList', () => {
     await user.click(screen.getByRole('button', { name: /Abbreviation/i }));
     await waitFor(() => expect(stateService.list).toHaveBeenCalledWith(undefined, 'sigla,desc'));
   });
+
+  it('sorts by name when the Name column header is clicked', async () => {
+    vi.mocked(stateService.list).mockResolvedValue(states);
+    const user = userEvent.setup();
+
+    renderWithProviders(<StateList />);
+    await screen.findByText('São Paulo');
+    vi.mocked(stateService.list).mockClear();
+
+    await user.click(screen.getByRole('button', { name: /^Name/i }));
+
+    await waitFor(() => expect(stateService.list).toHaveBeenCalledWith(undefined, 'nome,asc'));
+  });
+
+  it('shows a sort indicator icon only on the active column', async () => {
+    vi.mocked(stateService.list).mockResolvedValue(states);
+    const user = userEvent.setup();
+
+    renderWithProviders(<StateList />);
+    await screen.findByText('São Paulo');
+
+    // Sorting changes the TanStack Query key (it includes sort), so React
+    // Query treats it as a brand-new query and the table unmounts behind
+    // the spinner until it resolves - re-querying the DOM after each click
+    // (instead of reusing button references captured before it) avoids
+    // asserting against nodes React has already thrown away.
+    await user.click(screen.getByRole('button', { name: /Abbreviation/i }));
+    await screen.findByText('São Paulo');
+    expect(screen.getByRole('button', { name: /Abbreviation/i }).querySelector('svg')).toBeTruthy();
+    expect(screen.getByRole('button', { name: /^Name/i }).querySelector('svg')).toBeFalsy();
+
+    await user.click(screen.getByRole('button', { name: /^Name/i }));
+    await screen.findByText('São Paulo');
+    expect(screen.getByRole('button', { name: /^Name/i }).querySelector('svg')).toBeTruthy();
+    expect(screen.getByRole('button', { name: /Abbreviation/i }).querySelector('svg')).toBeFalsy();
+  });
 });
