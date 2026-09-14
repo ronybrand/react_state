@@ -36,7 +36,7 @@ export const ConfirmDialog = forwardRef<ConfirmDialogHandle, ConfirmDialogProps>
         ref={dialogRef}
         aria-label={message}
         onCancel={() => onCancel?.()}
-        className="rounded-lg p-5 shadow-xl backdrop:bg-black/50"
+        className="m-auto rounded-lg p-5 shadow-xl backdrop:bg-black/50"
       >
         <p>{message}</p>
         <div className="mt-3 text-right">
