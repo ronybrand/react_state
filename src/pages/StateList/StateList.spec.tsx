@@ -218,4 +218,31 @@ describe('StateList', () => {
     expect(screen.getByRole('button', { name: /^Name/i }).querySelector('svg')).toBeTruthy();
     expect(screen.getByRole('button', { name: /Abbreviation/i }).querySelector('svg')).toBeFalsy();
   });
+
+  it('exposes the sort state via aria-sort on the active column header', async () => {
+    vi.mocked(stateService.list).mockResolvedValue(states);
+    const user = userEvent.setup();
+
+    renderWithProviders(<StateList />);
+    await screen.findByText('São Paulo');
+
+    expect(screen.getByRole('button', { name: /Abbreviation/i }).closest('th')).toHaveAttribute(
+      'aria-sort',
+      'none',
+    );
+
+    await user.click(screen.getByRole('button', { name: /Abbreviation/i }));
+    await screen.findByText('São Paulo');
+    expect(screen.getByRole('button', { name: /Abbreviation/i }).closest('th')).toHaveAttribute(
+      'aria-sort',
+      'ascending',
+    );
+
+    await user.click(screen.getByRole('button', { name: /Abbreviation/i }));
+    await screen.findByText('São Paulo');
+    expect(screen.getByRole('button', { name: /Abbreviation/i }).closest('th')).toHaveAttribute(
+      'aria-sort',
+      'descending',
+    );
+  });
 });
