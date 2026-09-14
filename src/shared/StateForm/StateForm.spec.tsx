@@ -66,6 +66,21 @@ describe('StateForm', () => {
     ).toBeInTheDocument();
   });
 
+  it('revalidates on every keystroke after the field has been touched once', async () => {
+    const user = userEvent.setup();
+    render(<StateForm onSubmitState={vi.fn()} />);
+
+    const abbreviation = screen.getByLabelText('Abbreviation');
+    await user.type(abbreviation, 'S');
+    await user.tab();
+    expect(screen.getByText('Enter the state abbreviation.')).toBeInTheDocument();
+
+    await user.click(abbreviation);
+    await user.type(abbreviation, 'P');
+
+    expect(screen.queryByText('Enter the state abbreviation.')).not.toBeInTheDocument();
+  });
+
   it('keeps the button disabled when the disabled prop is true, even with a valid form', async () => {
     const user = userEvent.setup();
     render(
