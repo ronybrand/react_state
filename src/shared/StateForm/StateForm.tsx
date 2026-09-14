@@ -18,7 +18,7 @@ export function StateForm({ initialValues, disabled = false, onSubmitState }: St
     handleSubmit,
     formState: { errors, isValid, isDirty },
   } = useForm<NewState>({
-    mode: 'onBlur',
+    mode: 'onTouched',
     resolver: zodResolver(newStateSchema),
     defaultValues: { abbreviation: '', name: '' },
     values: initialValues,
