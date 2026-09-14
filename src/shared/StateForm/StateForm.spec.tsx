@@ -9,7 +9,7 @@ describe('StateForm', () => {
     expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
   });
 
-  it('enables the save button when abbreviation and name are valid', async () => {
+  it('enables the save button and shows no errors when abbreviation and name are valid', async () => {
     const user = userEvent.setup();
     render(<StateForm onSubmitState={vi.fn()} />);
 
@@ -18,6 +18,12 @@ describe('StateForm', () => {
     await user.tab();
 
     expect(screen.getByRole('button', { name: 'Save' })).toBeEnabled();
+    expect(
+      screen.queryByText('Enter the state abbreviation with 2 letters.'),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('Enter the state name with at least 3 characters.'),
+    ).not.toBeInTheDocument();
   });
 
   it('marks the abbreviation as invalid and links the error message via aria-describedby', async () => {
@@ -30,7 +36,34 @@ describe('StateForm', () => {
 
     expect(abbreviation).toHaveAttribute('aria-invalid', 'true');
     expect(abbreviation).toHaveAttribute('aria-describedby', 'abbreviation-error');
-    expect(screen.getByText('Enter the state abbreviation.')).toBeInTheDocument();
+    expect(screen.getByText('Enter the state abbreviation with 2 letters.')).toBeInTheDocument();
+  });
+
+  it('marks the name as invalid and shows the min-length message', async () => {
+    const user = userEvent.setup();
+    render(<StateForm onSubmitState={vi.fn()} />);
+
+    const name = screen.getByLabelText('Name');
+    await user.type(name, 'AB');
+    await user.tab();
+
+    expect(name).toHaveAttribute('aria-invalid', 'true');
+    expect(
+      screen.getByText('Enter the state name with at least 3 characters.'),
+    ).toBeInTheDocument();
+  });
+
+  it('shows the max-length message when the name is too long', async () => {
+    const user = userEvent.setup();
+    render(<StateForm onSubmitState={vi.fn()} />);
+
+    const name = screen.getByLabelText('Name');
+    await user.type(name, 'A'.repeat(101));
+    await user.tab();
+
+    expect(
+      screen.getByText('Enter the state name with at most 100 characters.'),
+    ).toBeInTheDocument();
   });
 
   it('keeps the button disabled when the disabled prop is true, even with a valid form', async () => {
