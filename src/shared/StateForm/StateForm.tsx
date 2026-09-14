@@ -1,28 +1,36 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { Icon } from '../Icon/Icon';
-import { newStateSchema, type NewState } from '../../interfaces/state';
+import { createNewStateSchema, type NewState } from '../../interfaces/state';
 
 interface StateFormProps {
   initialValues?: NewState;
   disabled?: boolean;
+  existingAbbreviations?: string[];
   onSubmitState: (state: NewState) => void;
 }
 
 const inputClass =
   'col-span-12 rounded border px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand aria-invalid:border-danger';
 
-export function StateForm({ initialValues, disabled = false, onSubmitState }: StateFormProps) {
+export function StateForm({
+  initialValues,
+  disabled = false,
+  existingAbbreviations = [],
+  onSubmitState,
+}: StateFormProps) {
   const {
     register,
     handleSubmit,
     formState: { errors, isValid, isDirty },
   } = useForm<NewState>({
     mode: 'onTouched',
-    resolver: zodResolver(newStateSchema),
+    resolver: zodResolver(createNewStateSchema(existingAbbreviations, initialValues?.abbreviation)),
     defaultValues: { abbreviation: '', name: '' },
     values: initialValues,
   });
+
+  const { onChange: onAbbreviationChange, ...abbreviationField } = register('abbreviation');
 
   return (
     <form onSubmit={handleSubmit(onSubmitState)} className="space-y-4">
@@ -37,7 +45,11 @@ export function StateForm({ initialValues, disabled = false, onSubmitState }: St
           className={inputClass}
           aria-invalid={errors.abbreviation ? true : undefined}
           aria-describedby="abbreviation-error"
-          {...register('abbreviation')}
+          {...abbreviationField}
+          onChange={(e) => {
+            e.target.value = e.target.value.toUpperCase();
+            onAbbreviationChange(e);
+          }}
         />
         {errors.abbreviation && (
           <div id="abbreviation-error" className="text-danger mt-1 text-sm">
