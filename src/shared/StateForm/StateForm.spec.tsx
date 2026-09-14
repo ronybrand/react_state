@@ -30,7 +30,7 @@ describe('StateForm', () => {
 
     expect(abbreviation).toHaveAttribute('aria-invalid', 'true');
     expect(abbreviation).toHaveAttribute('aria-describedby', 'abbreviation-error');
-    expect(screen.getByText('Enter the state abbreviation.')).toBeInTheDocument();
+    expect(screen.getByText('Enter the state abbreviation with 2 letters.')).toBeInTheDocument();
   });
 
   it('keeps the button disabled when the disabled prop is true, even with a valid form', async () => {
