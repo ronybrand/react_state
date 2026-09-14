@@ -119,6 +119,13 @@ scripts/
 - Request errors (query/mutation) are handled per page via
   `useErrorMessage`; unexpected render errors are caught by React Router's
   `errorElement` (`RouteError`), avoiding a blank screen.
+- `stateService.list` fetches the whole dataset in a single request instead
+  of exposing page-size/pagination controls in the UI: the domain is closed
+  at 27 items (the Brazilian states), so real pagination never triggers in
+  practice. The backend only exposes the paginated endpoint
+  (`/estado/paginado`, see ADR 0018 in the `estado` repo) — the frontend
+  still consumes that contract, it just doesn't surface paging in the UI
+  for a dataset that always fits on one page.
 
 ## Prerequisites
 
