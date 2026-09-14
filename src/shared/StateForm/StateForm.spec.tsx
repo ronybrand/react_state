@@ -49,6 +49,36 @@ describe('StateForm', () => {
     expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
   });
 
+  it('keeps the save button disabled when the form values match initialValues', async () => {
+    const user = userEvent.setup();
+    render(
+      <StateForm
+        initialValues={{ abbreviation: 'SP', name: 'São Paulo' }}
+        onSubmitState={vi.fn()}
+      />,
+    );
+
+    await user.click(screen.getByLabelText('Name'));
+    await user.tab();
+
+    expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
+  });
+
+  it('enables the save button when the form values differ from initialValues', async () => {
+    const user = userEvent.setup();
+    render(
+      <StateForm
+        initialValues={{ abbreviation: 'SP', name: 'São Paulo' }}
+        onSubmitState={vi.fn()}
+      />,
+    );
+
+    await user.type(screen.getByLabelText('Name'), ' Antigo');
+    await user.tab();
+
+    expect(screen.getByRole('button', { name: 'Save' })).toBeEnabled();
+  });
+
   it('calls onSubmitState with the form data on submit', async () => {
     const user = userEvent.setup();
     const onSubmitState = vi.fn();
