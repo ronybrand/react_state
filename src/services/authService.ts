@@ -1,5 +1,5 @@
 import { httpClient } from '../lib/httpClient';
-import { setToken } from '../lib/tokenStorage';
+import { clearToken, setToken } from '../lib/tokenStorage';
 import { LOGIN_PATH } from '../lib/apiPaths';
 
 export interface LoginCredentials {
@@ -18,4 +18,5 @@ export const authService = {
       setToken(r.data.token);
       return r.data;
     }),
+  logout: () => clearToken(),
 };
