@@ -80,6 +80,10 @@ export function Login() {
           </button>
         </div>
       </form>
+      <p className="mt-4 text-sm text-gray-600" data-testid="demo-credentials">
+        Demo credentials (intentionally public): <strong>admin</strong> /{' '}
+        <strong>Estado-Demo-2026</strong>
+      </p>
     </FormPage>
   );
 }

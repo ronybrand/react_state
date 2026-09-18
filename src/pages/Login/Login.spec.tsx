@@ -40,6 +40,15 @@ describe('Login', () => {
     );
   });
 
+  it('shows the public demo credentials', () => {
+    renderWithProviders(<Login />);
+
+    const hint = screen.getByTestId('demo-credentials');
+
+    expect(hint).toHaveTextContent('admin');
+    expect(hint).toHaveTextContent('Estado-Demo-2026');
+  });
+
   it('enables the submit button without requiring a blur first', async () => {
     vi.mocked(authService.login).mockResolvedValue({ token: 'token', expiresInSeconds: 3600 });
     const user = userEvent.setup();
