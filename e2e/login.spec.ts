@@ -1,17 +1,27 @@
 import { test, expect } from '@playwright/test';
 import { mockStateList, pageOf } from './fixtures/states';
+import { errorAlert } from './fixtures/errorAlert';
+
+// ProtectedRoute's redirect is client-side (a useEffect calling
+// router.replace() after hydration, not a server redirect) - under the CPU
+// contention of the full suite's parallel workers, the browser's own URL
+// commit can occasionally take longer than the default 5s assertion
+// timeout even though the guard already unmounted the protected content
+// well before that. A longer timeout here reflects real (if unusually
+// slow) client navigation, not a retry papering over wrong behavior.
+const REDIRECT_TIMEOUT_MS = 10_000;
 
 test.describe('Login', () => {
   test('redirects to /login when visiting the create page unauthenticated', async ({ page }) => {
     await page.goto('/state/new');
 
-    await expect(page).toHaveURL('/login');
+    await expect(page).toHaveURL('/login', { timeout: REDIRECT_TIMEOUT_MS });
   });
 
   test('redirects to /login when visiting the edit page unauthenticated', async ({ page }) => {
     await page.goto('/state/1/edit');
 
-    await expect(page).toHaveURL('/login');
+    await expect(page).toHaveURL('/login', { timeout: REDIRECT_TIMEOUT_MS });
   });
 
   test('state list stays accessible without authentication', async ({ page }) => {
@@ -62,7 +72,7 @@ test.describe('Login', () => {
     await page.locator('#password').fill('wrong-password');
     await page.getByRole('button', { name: 'Log in' }).click();
 
-    await expect(page.getByRole('alert')).toContainText('Invalid username or password.');
+    await expect(errorAlert(page)).toContainText('Invalid username or password.');
     await expect(page).toHaveURL('/login');
   });
 
@@ -79,6 +89,6 @@ test.describe('Login', () => {
 
     await page.goto('/state/new');
 
-    await expect(page).toHaveURL('/login');
+    await expect(page).toHaveURL('/login', { timeout: REDIRECT_TIMEOUT_MS });
   });
 });

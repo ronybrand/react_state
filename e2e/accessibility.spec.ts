@@ -3,6 +3,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { STATES, mockStateList, mockGetState } from './fixtures/states';
 import { authenticated } from './fixtures/auth';
 import { mockInfo } from './fixtures/info';
+import { errorAlert } from './fixtures/errorAlert';
 
 test.describe('Accessibility (axe-core, WCAG 2.1 A/AA)', () => {
   test.beforeEach(async ({ page }) => {
@@ -32,7 +33,7 @@ test.describe('Accessibility (axe-core, WCAG 2.1 A/AA)', () => {
     await page.locator('#username').fill('admin');
     await page.locator('#password').fill('wrong-password');
     await page.getByRole('button', { name: 'Log in' }).click();
-    await expect(page.getByRole('alert')).toContainText('Invalid username or password.');
+    await expect(errorAlert(page)).toContainText('Invalid username or password.');
 
     const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
 
