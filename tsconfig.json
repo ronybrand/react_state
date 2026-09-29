@@ -31,5 +31,15 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules",
+    // Playwright's own e2e specs/fixtures aren't part of the Next.js app
+    // and aren't run through this tsconfig at test time (Playwright
+    // type-checks them itself) - excluded so `next build`'s typecheck
+    // pass doesn't fail on them (e.g. a Promise<Disposable> vs
+    // Promise<void> mismatch coming from a lib/target difference between
+    // this app's tsconfig and what the e2e fixtures were written against).
+    "e2e",
+    "playwright.config.ts"
+  ]
 }
