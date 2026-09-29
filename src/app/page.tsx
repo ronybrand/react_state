@@ -1,0 +1,235 @@
+'use client';
+
+import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
+import { useStates } from '../hooks/useStates';
+import { useDeleteState } from '../hooks/useDeleteState';
+import { useErrorMessage } from '../shared/ErrorMessage/useErrorMessage';
+import { ErrorMessage } from '../shared/ErrorMessage/ErrorMessage';
+import { Spinner } from '../shared/Spinner/Spinner';
+import { Icon } from '../shared/Icon/Icon';
+import { ConfirmDialog, type ConfirmDialogHandle } from '../shared/ConfirmDialog/ConfirmDialog';
+import { extractRequestId } from '../lib/extractRequestId';
+import { formatDate } from '../lib/formatDate';
+
+type SortField = 'nome' | 'sigla';
+type SortDirection = 'asc' | 'desc';
+
+const DEBOUNCE_MS = 300;
+
+export default function StateList() {
+  const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [sortField, setSortField] = useState<SortField | null>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const sort = sortField ? `${sortField},${sortDirection}` : undefined;
+  const {
+    data: states = [],
+    isLoading,
+    isError,
+    error: loadError,
+  } = useStates(debouncedSearch || undefined, sort);
+  const deleteState = useDeleteState();
+  const { error, requestId, setError } = useErrorMessage();
+  const confirmDialog = useRef<ConfirmDialogHandle>(null);
+  const [pendingDelete, setPendingDelete] = useState<{ id: number; abbreviation: string } | null>(
+    null,
+  );
+
+  useEffect(() => {
+    if (isError) {
+      setError('Failed to fetch states.', extractRequestId(loadError));
+    }
+  }, [isError, loadError, setError]);
+
+  // Manual debounce with setTimeout instead of a library/rxjs-like operator:
+  // it's a single simple interaction (one search box), nowhere else in the
+  // project debounces anything, so a dependency just for this would be
+  // overkill.
+  useEffect(() => {
+    return () => {
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+      }
+    };
+  }, []);
+
+  function handleSearchChange(value: string) {
+    setSearch(value);
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+    }
+    debounceTimer.current = setTimeout(() => setDebouncedSearch(value), DEBOUNCE_MS);
+  }
+
+  function handleSort(field: SortField) {
+    if (sortField === field) {
+      setSortDirection((direction) => (direction === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  }
+
+  function ariaSort(field: SortField): 'ascending' | 'descending' | 'none' {
+    if (sortField !== field) {
+      return 'none';
+    }
+    return sortDirection === 'asc' ? 'ascending' : 'descending';
+  }
+
+  function handleDelete(id: number, abbreviation: string) {
+    setPendingDelete({ id, abbreviation });
+    confirmDialog.current?.open();
+  }
+
+  function confirmDeletion() {
+    if (!pendingDelete) {
+      return;
+    }
+    deleteState.mutate(pendingDelete.id, {
+      onError: (err) => {
+        setError('Failed to delete state.', extractRequestId(err));
+      },
+    });
+  }
+
+  return (
+    <div className="mx-auto max-w-4xl p-4">
+      <ErrorMessage error={error} requestId={requestId} />
+
+      <div className="mb-4 text-right">
+        <Link
+          href="/state/new"
+          className="bg-success hover:bg-success/90 inline-flex items-center gap-1 rounded px-3 py-1.5 text-sm text-white"
+        >
+          <Icon name="plus" />
+          New state
+        </Link>
+      </div>
+
+      <div className="rounded border border-gray-200">
+        <div className="font-display border-b border-gray-200 bg-gray-50 px-4 py-2 font-semibold">
+          States
+        </div>
+        <div className="p-4">
+          <div className="mb-3">
+            <label htmlFor="state-search" className="sr-only">
+              Search by name or abbreviation
+            </label>
+            <input
+              id="state-search"
+              type="search"
+              placeholder="Search by name or abbreviation..."
+              value={search}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              className="w-full rounded border border-gray-300 px-3 py-1.5 text-sm"
+            />
+          </div>
+
+          {isLoading && <Spinner />}
+
+          {!isLoading && states.length === 0 && (
+            <div className="py-3 text-center text-gray-500">
+              <p>No states registered.</p>
+              <Link
+                href="/state/new"
+                className="bg-success hover:bg-success/90 mt-2 inline-block rounded px-3 py-1 text-sm text-white"
+              >
+                Create the first state
+              </Link>
+            </div>
+          )}
+
+          {!isLoading && states.length > 0 && (
+            <table className="w-full text-center text-sm">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="p-2" aria-sort={ariaSort('sigla')}>
+                    <button
+                      type="button"
+                      onClick={() => handleSort('sigla')}
+                      className="inline-flex cursor-pointer items-center gap-1 font-semibold"
+                    >
+                      Abbreviation
+                      {sortField === 'sigla' && (
+                        <Icon
+                          name={sortDirection === 'asc' ? 'chevron-up' : 'chevron-down'}
+                          size={12}
+                        />
+                      )}
+                    </button>
+                  </th>
+                  <th className="p-2" aria-sort={ariaSort('nome')}>
+                    <button
+                      type="button"
+                      onClick={() => handleSort('nome')}
+                      className="inline-flex cursor-pointer items-center gap-1 font-semibold"
+                    >
+                      Name
+                      {sortField === 'nome' && (
+                        <Icon
+                          name={sortDirection === 'asc' ? 'chevron-up' : 'chevron-down'}
+                          size={12}
+                        />
+                      )}
+                    </button>
+                  </th>
+                  <th className="hidden p-2 md:table-cell">Created</th>
+                  <th className="hidden p-2 md:table-cell">Last Updated</th>
+                  <th className="p-2">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {states.map((state) => (
+                  <tr key={state.id} className="border-b border-gray-100">
+                    <td className="p-2 font-semibold">{state.abbreviation}</td>
+                    <td className="p-2">{state.name}</td>
+                    <td className="hidden p-2 font-mono text-xs text-gray-500 md:table-cell">
+                      {formatDate(state.createdAt)}
+                    </td>
+                    <td className="hidden p-2 font-mono text-xs text-gray-500 md:table-cell">
+                      {formatDate(state.updatedAt)}
+                    </td>
+                    <td className="space-x-1 p-2">
+                      <Link
+                        href={`/state/${state.id}/edit`}
+                        aria-label={`Edit ${state.abbreviation}`}
+                        className="bg-brand hover:bg-brand-dark inline-flex items-center gap-1 rounded px-2 py-1 text-white"
+                      >
+                        <Icon name="pencil" size={14} />
+                        <span className="hidden md:inline">Edit</span>
+                      </Link>
+                      <button
+                        type="button"
+                        aria-label={`Delete ${state.abbreviation}`}
+                        disabled={deleteState.isPending}
+                        onClick={() => handleDelete(state.id, state.abbreviation)}
+                        className="bg-danger inline-flex cursor-pointer items-center gap-1 rounded px-2 py-1 text-white hover:opacity-90 disabled:cursor-default disabled:opacity-50"
+                      >
+                        <Icon name="trash" size={14} />
+                        <span className="hidden md:inline">Delete</span>
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+      <ConfirmDialog
+        ref={confirmDialog}
+        message={
+          pendingDelete
+            ? `Are you sure you want to delete ${pendingDelete.abbreviation}?`
+            : 'Are you sure you want to delete this state?'
+        }
+        onConfirm={confirmDeletion}
+        onCancel={() => setPendingDelete(null)}
+      />
+    </div>
+  );
+}

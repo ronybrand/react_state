@@ -1,0 +1,87 @@
+import { screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import CreateState from './page';
+import { stateService } from '../../../../services/stateService';
+import { renderWithProviders } from '../../../../testUtils';
+
+vi.mock('../../../../services/stateService', () => ({
+  stateService: {
+    create: vi.fn(),
+    list: vi.fn().mockResolvedValue([]),
+  },
+}));
+
+const mockPush = vi.hoisted(() => vi.fn());
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: mockPush }),
+}));
+
+describe('CreateState', () => {
+  beforeEach(() => {
+    vi.mocked(stateService.create).mockReset();
+    vi.mocked(stateService.list).mockReset().mockResolvedValue([]);
+    mockPush.mockReset();
+  });
+
+  it('rejects an abbreviation that already exists among the fetched states', async () => {
+    vi.mocked(stateService.list).mockResolvedValue([
+      {
+        id: 1,
+        abbreviation: 'RJ',
+        name: 'Rio de Janeiro',
+        createdAt: '2024-01-01T10:00:00Z',
+        updatedAt: null,
+      },
+    ]);
+    const user = userEvent.setup();
+
+    renderWithProviders(<CreateState />);
+
+    await user.type(screen.getByLabelText('Abbreviation'), 'RJ');
+    await user.tab();
+
+    expect(
+      await screen.findByText('A state with this abbreviation already exists.'),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
+  });
+
+  it('creates the state and navigates to the list', async () => {
+    vi.mocked(stateService.create).mockResolvedValue({
+      id: 1,
+      abbreviation: 'RJ',
+      name: 'Rio de Janeiro',
+      createdAt: '2024-01-01T10:00:00Z',
+      updatedAt: '2024-01-01T10:00:00Z',
+    });
+    const user = userEvent.setup();
+
+    renderWithProviders(<CreateState />);
+
+    await user.type(screen.getByLabelText('Abbreviation'), 'RJ');
+    await user.type(screen.getByLabelText('Name'), 'Rio de Janeiro');
+    await user.tab();
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+
+    await waitFor(() => expect(mockPush).toHaveBeenCalledWith('/'));
+    expect(stateService.create).toHaveBeenCalledWith(
+      { abbreviation: 'RJ', name: 'Rio de Janeiro' },
+      expect.anything(),
+    );
+  });
+
+  it('shows the backend error message when creation fails', async () => {
+    vi.mocked(stateService.create).mockRejectedValue(new Error('failed'));
+    const user = userEvent.setup();
+
+    renderWithProviders(<CreateState />);
+
+    await user.type(screen.getByLabelText('Abbreviation'), 'RJ');
+    await user.type(screen.getByLabelText('Name'), 'Rio de Janeiro');
+    await user.tab();
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+
+    expect(await screen.findByText('Failed to create state.')).toBeInTheDocument();
+    expect(mockPush).not.toHaveBeenCalled();
+  });
+});
