@@ -17,16 +17,16 @@ const nextConfig: NextConfig = {
   // works, and the `/api/(.*)` -> backend rewrite is superseded by
   // src/app/api/estados/route.ts for the one route that needed it (see
   // that file's comment on why it's not yet a full catch-all proxy).
+  //
+  // Content-Security-Policy is NOT set here - a static `script-src 'self'`
+  // (the literal port of the old CSP) blocks the App Router's own inline
+  // RSC-payload scripts and breaks hydration. See src/middleware.ts, which
+  // sets a per-request nonced CSP instead (Next's documented approach).
   async headers() {
     return [
       {
         source: '/(.*)',
         headers: [
-          {
-            key: 'Content-Security-Policy',
-            value:
-              "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'",
-          },
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           { key: 'X-Frame-Options', value: 'DENY' },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
