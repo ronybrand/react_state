@@ -9,26 +9,13 @@ updates:
       weekly-batch:
         patterns:
           - '*'
-    ignore:
-      # eslint-plugin-jsx-a11y@6.10.2 (latest) caps its eslint peer dep at
-      # ^9, so an eslint major bump breaks npm ci with ERESOLVE.
-      # @eslint/js must stay in lockstep with eslint (it requires eslint
-      # ^10 once bumped), so it's ignored too - otherwise dependabot bumps
-      # them independently and breaks the peer resolution the other way.
-      - dependency-name: 'eslint'
-        update-types: ['version-update:semver-major']
-      - dependency-name: '@eslint/js'
-        update-types: ['version-update:semver-major']
-      # typescript-eslint@8.68.0 caps its typescript peer dep at <6.1.0,
-      # so a typescript major bump breaks npm ci with ERESOLVE (same
-      # constraint already worked around in angular_estado).
-      - dependency-name: 'typescript'
-        update-types: ['version-update:semver-major']
-      # eslint-plugin-react-hooks@7.1.1's recommended-latest config exports
-      # a legacy eslintrc-style "plugins" array, incompatible with our
-      # flat config on ESLint 9 ("Oops! Something went wrong!" on lint).
-      - dependency-name: 'eslint-plugin-react-hooks'
-        update-types: ['version-update:semver-major']
+    # No ignore rules for now: the Next.js migration dropped
+    # eslint-plugin-jsx-a11y, @eslint/js, typescript-eslint and
+    # eslint-plugin-react-hooks as direct dependencies (eslint-config-next
+    # bundles its own equivalents), which is what the previous ignore rules
+    # here were about - see git history (pre-migration) for the original
+    # reasoning if any of those peer-dependency constraints resurface
+    # through eslint-config-next itself.
 
   - package-ecosystem: github-actions
     directory: /

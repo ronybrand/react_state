@@ -10,7 +10,7 @@ Husky's `lint-staged` hook only formats files staged in the current commit; don'
 
 Each major-bump `ignore` rule in `.github/dependabot.yml` fixes a real (not theoretical) broken `npm ci`/lint. See the comment next to each rule for why — don't duplicate that reasoning here, keep it in one place so it can't drift out of sync.
 
-`.github/workflows/dependabot-ignore-check.yml` (monthly + manually triggerable via `workflow_dispatch` in the Actions tab) re-evaluates those rules and opens/updates a single tracking issue when one becomes removable. Don't remove an `ignore` rule without first letting dependabot open the bump PR and confirming CI passes. When you add a new `ignore` rule, add a matching check to that workflow.
+There are currently no `ignore` rules: the ones that existed pre-Next.js-migration (`eslint`/`@eslint/js`/`typescript`/`eslint-plugin-react-hooks` peer-dependency traps) were about packages that are no longer direct dependencies — `eslint-config-next` bundles its own equivalents now. `.github/workflows/dependabot-ignore-check.yml` (the workflow that used to re-evaluate them) was removed along with the rules it checked; if a similar peer-dependency trap resurfaces through `eslint-config-next` or another dependency, add both a new `ignore` rule (with its own comment explaining the real breakage) and a matching automated check, following the pattern the removed workflow used.
 
 ## Coverage gate
 
