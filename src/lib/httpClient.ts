@@ -1,6 +1,7 @@
 import axios, { type AxiosRequestConfig } from 'axios';
 import { clearToken, getToken } from './tokenStorage';
 import { LOGIN_PATH } from './apiPaths';
+import { notifySessionExpired } from './sessionExpired';
 
 export const REQUEST_ID_HEADER = 'X-Request-Id';
 export const TIMEOUT_MS = 15000;
@@ -79,11 +80,10 @@ httpClient.interceptors.response.use(undefined, async (error) => {
   // `router` singleton and called `router.navigate(...)` imperatively from
   // outside React. Next.js's App Router has no equivalent importable
   // singleton (`next/navigation`'s router is only available via the
-  // `useRouter()` hook inside components), so this uses a hard
-  // `window.location` redirect instead. That's a slightly heavier
-  // transition (full page reload vs. client-side nav) but is
-  // straightforward and correct; a lighter-weight fix would need a
-  // module-level "router ref" set from a client component on mount.
+  // `useRouter()` hook inside components), so this notifies a module-level
+  // subscriber instead (see sessionExpired.ts) - a client component near
+  // the app's root subscribes on mount and does the actual
+  // useRouter().push('/login') from within React.
   if (
     status === 401 &&
     !config?.url?.endsWith(LOGIN_PATH) &&
@@ -91,8 +91,7 @@ httpClient.interceptors.response.use(undefined, async (error) => {
     typeof window !== 'undefined'
   ) {
     clearToken();
-    // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- intentional: this runs outside any component (an axios interceptor), so useRouter()'s push()/replace() isn't reachable here. See the comment above.
-    window.location.assign('/login');
+    notifySessionExpired();
     throw error;
   }
 

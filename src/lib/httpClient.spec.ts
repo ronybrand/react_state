@@ -1,28 +1,30 @@
 import MockAdapter from 'axios-mock-adapter';
 import { httpClient, REQUEST_ID_HEADER, RETRY_DELAY_MS } from './httpClient';
 import { clearToken, getToken, setToken } from './tokenStorage';
+import { onSessionExpired } from './sessionExpired';
 
 // Deviation from the Vite original: that version mocked react-router's
 // `router` singleton and asserted `router.navigate('/login', { replace:
-// true })`. This port's httpClient uses `window.location.assign('/login')`
-// instead (see the comment in httpClient.ts on why there's no App Router
-// equivalent of an importable navigate() outside components), so these
-// tests spy on window.location.assign.
+// true })`. This port's httpClient notifies sessionExpired.ts instead (see
+// the comment in httpClient.ts on why there's no App Router equivalent of
+// an importable navigate() outside components), so these tests subscribe
+// to that in place of a router mock.
 describe('httpClient', () => {
   let mock: MockAdapter;
-  let assignSpy: ReturnType<typeof vi.fn>;
+  let sessionExpiredListener: ReturnType<typeof vi.fn>;
+  let unsubscribe: () => void;
 
   beforeEach(() => {
     mock = new MockAdapter(httpClient);
     clearToken();
-    assignSpy = vi.fn();
-    vi.stubGlobal('location', { ...window.location, assign: assignSpy });
+    sessionExpiredListener = vi.fn();
+    unsubscribe = onSessionExpired(sessionExpiredListener);
   });
 
   afterEach(() => {
     mock.restore();
     clearToken();
-    vi.unstubAllGlobals();
+    unsubscribe();
   });
 
   it('sends an X-Request-Id (UUID) on every request', async () => {
@@ -159,7 +161,7 @@ describe('httpClient', () => {
 
     expect(attempts).toBe(1);
     expect(getToken()).toBeNull();
-    expect(assignSpy).toHaveBeenCalledWith('/login');
+    expect(sessionExpiredListener).toHaveBeenCalledTimes(1);
   });
 
   it('only redirects once when concurrent requests all 401', async () => {
@@ -170,8 +172,7 @@ describe('httpClient', () => {
     await Promise.allSettled([httpClient.get('/state/a'), httpClient.get('/state/b')]);
 
     expect(getToken()).toBeNull();
-    expect(assignSpy).toHaveBeenCalledTimes(1);
-    expect(assignSpy).toHaveBeenCalledWith('/login');
+    expect(sessionExpiredListener).toHaveBeenCalledTimes(1);
   });
 
   it('does not clear the token or redirect on a 401 from the login request itself', async () => {
@@ -186,7 +187,7 @@ describe('httpClient', () => {
 
     expect(attempts).toBe(1);
     expect(getToken()).toBe('token-existente');
-    expect(assignSpy).not.toHaveBeenCalled();
+    expect(sessionExpiredListener).not.toHaveBeenCalled();
   });
 
   it('does not clear the token on a non-401 error', async () => {
