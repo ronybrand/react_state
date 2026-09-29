@@ -15,13 +15,12 @@ const nextConfig: NextConfig = {
   // The old rewrites in that file don't carry over: the SPA fallback
   // rewrite (`/(.*) -> /index.html`) is now just how Next's App Router
   // works, and the `/api/(.*)` -> backend rewrite is superseded by
-  // src/app/api/estados/route.ts for the one route that needed it (see
-  // that file's comment on why it's not yet a full catch-all proxy).
+  // src/app/api/[...path]/route.ts, a full catch-all proxy to the backend.
   //
   // Content-Security-Policy is NOT set here - a static `script-src 'self'`
   // (the literal port of the old CSP) blocks the App Router's own inline
-  // RSC-payload scripts and breaks hydration. See src/middleware.ts, which
-  // sets a per-request nonced CSP instead (Next's documented approach).
+  // RSC-payload scripts and breaks hydration. See src/proxy.ts, which sets
+  // a per-request nonced CSP instead (Next's documented approach).
   async headers() {
     return [
       {
