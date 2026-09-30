@@ -2,6 +2,8 @@ import path from 'node:path';
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
+  // Don't advertise the framework in every response.
+  poweredByHeader: false,
   // Pins Turbopack's workspace root to this project's own directory - it
   // otherwise walks up looking for a lockfile and can pick up a sibling
   // project's instead when this repo sits under a parent directory that
