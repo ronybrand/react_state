@@ -19,9 +19,9 @@ jobs:
         with:
           node-version: 22
 
-      # Silent unless a rule can actually be removed: the signals always go to
-      # the job summary, but an issue is only opened (or refreshed) when the
-      # script prints an ACTIONABLE line.
+      # Silent unless a rule can be relaxed: the signals always go to the job
+      # summary, but an issue is only opened (or refreshed) when the script
+      # prints an ACTIONABLE or PARTIAL line.
       - name: Evaluate the ignore rules
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -32,22 +32,33 @@ jobs:
           {
             echo '### Dependabot ignore rules'
             echo '```'
-            grep -v '^ACTIONABLE:' result.txt
+            grep -vE '^(ACTIONABLE|PARTIAL):' result.txt
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
-          rules=$(grep '^ACTIONABLE:' result.txt | cut -d: -f2 | paste -sd, - | sed 's/,/, /g')
-          [ -z "$rules" ] && exit 0
+          items=$(
+            while IFS=: read -r kind pkg highest blocked; do
+              case "$kind" in
+                ACTIONABLE)
+                  echo "- **$pkg**: the newest release is now supported. Remove its \`ignore\` rule."
+                  ;;
+                PARTIAL)
+                  echo "- **$pkg**: versions up to \`$highest\` are now supported, but the newest is not. Replace the blanket major-bump ignore with \`versions: ['>=$blocked']\`, then confirm the bump passes \`npm ci\`, \`npm run lint\` and \`npm run build\`."
+                  ;;
+              esac
+            done < <(grep -E '^(ACTIONABLE|PARTIAL):' result.txt)
+          )
+          [ -z "$items" ] && exit 0
 
-          title="Dependabot ignore rule can be removed"
+          title="Dependabot ignore rules can be relaxed"
           body=$(cat <<EOF
-          The \`ignore\` rule(s) for **$rules** in [\`dependabot.yml\`](../blob/master/.github/dependabot.yml) no longer look necessary: the dependency that caused the breakage now declares support for the newest major.
+          The \`ignore\` rules in [\`dependabot.yml\`](../blob/master/.github/dependabot.yml) are tighter than they need to be: the dependency that caused each breakage now declares support for a newer major.
+
+          $items
 
           \`\`\`
-          $(grep -v '^ACTIONABLE:' result.txt)
+          $(grep -vE '^(ACTIONABLE|PARTIAL):' result.txt)
           \`\`\`
-
-          Remove the rule, let Dependabot open the bump PR, and confirm \`npm ci\` and \`npm run lint\` pass before merging.
           EOF
           )
 
