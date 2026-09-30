@@ -140,6 +140,20 @@ describe('app/api/[...path] route (backend proxy)', () => {
     vi.unstubAllEnvs();
   });
 
+  it('answers 504 when the backend times out, and passes an abort signal to fetch', async () => {
+    fetchMock.mockRejectedValue(new DOMException('timed out', 'TimeoutError'));
+
+    const request = makeRequest('GET', 'http://localhost:3000/api/estado/paginado');
+    const response = await GET(request, {
+      params: Promise.resolve({ path: ['estado', 'paginado'] }),
+    });
+
+    const [, options] = fetchMock.mock.calls[0] as [string, { signal?: AbortSignal }];
+    expect(options.signal).toBeInstanceOf(AbortSignal);
+    expect(response.status).toBe(504);
+    await expect(response.json()).resolves.toEqual({ message: 'Backend timed out' });
+  });
+
   it('returns a 502 when the backend is unreachable', async () => {
     fetchMock.mockRejectedValue(new Error('ECONNREFUSED'));
 

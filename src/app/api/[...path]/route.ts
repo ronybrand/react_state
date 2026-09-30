@@ -18,6 +18,12 @@ import { NextRequest, NextResponse } from 'next/server';
 // (httpClient's own /estado prefix on top of the full backend URL).
 const REQUEST_ID_HEADER = 'X-Request-Id';
 
+// Shorter than httpClient's 15s timeout on purpose: the proxy has to give up
+// first so the client gets a clean 504 it can retry (GET), instead of its own
+// timeout firing while this function is still hanging - and billing - on a
+// stalled backend.
+export const BACKEND_TIMEOUT_MS = 10_000;
+
 interface RouteParams {
   params: Promise<{ path: string[] }>;
 }
@@ -63,6 +69,7 @@ async function proxy(request: NextRequest, params: RouteParams['params']): Promi
       method: request.method,
       headers,
       body: hasBody ? await request.text() : undefined,
+      signal: AbortSignal.timeout(BACKEND_TIMEOUT_MS),
     });
     const body = await backendResponse.text();
 
@@ -78,7 +85,10 @@ async function proxy(request: NextRequest, params: RouteParams['params']): Promi
       status: backendResponse.status,
       headers: responseHeaders,
     });
-  } catch {
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'TimeoutError') {
+      return NextResponse.json({ message: 'Backend timed out' }, { status: 504 });
+    }
     return NextResponse.json({ message: 'Failed to reach backend' }, { status: 502 });
   }
 }
