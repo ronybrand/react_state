@@ -42,6 +42,39 @@ const JSON_CONTENT_TYPE = /^application\/([\w.-]+\+)?json\s*(;|$)/i;
 // anything from them, even if a non-JSON body somehow got through.
 const API_CSP = "default-src 'none'; frame-ancestors 'none'; sandbox";
 
+// The app's real payloads (a state, a login) are tens of bytes. Capping the
+// body well below the platform limit stops a large upload from being
+// buffered in memory here and then forwarded to the backend.
+export const MAX_BODY_BYTES = 16 * 1024;
+
+// Reads the body as text, giving up as soon as it exceeds MAX_BODY_BYTES -
+// checked on the stream, not just Content-Length, since a chunked request
+// carries no length up front. Returns null when over the limit.
+async function readBodyCapped(request: NextRequest): Promise<string | null> {
+  if (Number(request.headers.get('content-length')) > MAX_BODY_BYTES) {
+    return null;
+  }
+  const reader = request.body?.getReader();
+  if (!reader) {
+    return '';
+  }
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) {
+      break;
+    }
+    total += value.byteLength;
+    if (total > MAX_BODY_BYTES) {
+      await reader.cancel();
+      return null;
+    }
+    chunks.push(value);
+  }
+  return Buffer.concat(chunks).toString('utf8');
+}
+
 interface RouteParams {
   params: Promise<{ path: string[] }>;
 }
@@ -87,11 +120,16 @@ async function proxy(request: NextRequest, params: RouteParams['params']): Promi
   const hasBody =
     request.method !== 'GET' && request.method !== 'HEAD' && request.method !== 'DELETE';
 
+  const requestBody = hasBody ? await readBodyCapped(request) : undefined;
+  if (requestBody === null) {
+    return NextResponse.json({ message: 'Request body too large' }, { status: 413 });
+  }
+
   try {
     const backendResponse = await fetch(backendUrl, {
       method: request.method,
       headers,
-      body: hasBody ? await request.text() : undefined,
+      body: requestBody,
       signal: AbortSignal.timeout(BACKEND_TIMEOUT_MS),
     });
     const body = await backendResponse.text();
