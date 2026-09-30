@@ -24,10 +24,25 @@ export function proxy(request: NextRequest) {
   // Plain 'self' + nonce sidesteps that; every e2e page still needs is a
   // same-origin script tag or an inline nonce'd one, never something that
   // actually required strict-dynamic's dynamic-trust-propagation semantics.
+  // 'unsafe-inline' is also listed, which looks self-defeating next to a
+  // nonce - but per the CSP3 spec, any browser that understands 'nonce-'
+  // ignores 'unsafe-inline' entirely when it's present; it only takes
+  // effect for a browser that doesn't. It's here as a deliberate fallback,
+  // not an oversight: both plain nonce+'self' and nonce+'self'+
+  // 'strict-dynamic' reproducibly broke hydration specifically in the
+  // Playwright container CI's e2e job runs in (~14/52 tests passing, forms
+  // never becoming interactive) while passing 52/52 on this machine's
+  // browsers every time - confirmed by removing the CSP entirely as a
+  // diagnostic, which made that job go green. The exact engine-level cause
+  // in that container's Chromium/Firefox build wasn't isolated (see PR #56
+  // discussion); 'unsafe-inline' keeps the nonce doing its job wherever it
+  // works and prevents a repeat of this failure wherever it doesn't, at the
+  // cost of no longer blocking inline scripts on browsers that predate
+  // nonce-based CSP (a small, known, accepted trade-off).
   const scriptSrc =
     process.env.NODE_ENV === 'development'
-      ? `script-src 'self' 'nonce-${nonce}' 'unsafe-eval'`
-      : `script-src 'self' 'nonce-${nonce}'`;
+      ? `script-src 'self' 'nonce-${nonce}' 'unsafe-inline' 'unsafe-eval'`
+      : `script-src 'self' 'nonce-${nonce}' 'unsafe-inline'`;
   const csp = [
     "default-src 'self'",
     scriptSrc,
