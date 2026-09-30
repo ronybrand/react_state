@@ -1,0 +1,59 @@
+name: Check dependabot ignore rules
+
+on:
+  schedule:
+    - cron: '0 6 1 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: 22
+
+      # Silent unless a rule can actually be removed: the signals always go to
+      # the job summary, but an issue is only opened (or refreshed) when the
+      # script prints an ACTIONABLE line.
+      - name: Evaluate the ignore rules
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          bash scripts/check-dependabot-ignore-rules.sh | tee result.txt
+
+          {
+            echo '### Dependabot ignore rules'
+            echo '```'
+            grep -v '^ACTIONABLE:' result.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          rules=$(grep '^ACTIONABLE:' result.txt | cut -d: -f2 | paste -sd, - | sed 's/,/, /g')
+          [ -z "$rules" ] && exit 0
+
+          title="Dependabot ignore rule can be removed"
+          body=$(cat <<EOF
+          The \`ignore\` rule(s) for **$rules** in [\`dependabot.yml\`](../blob/master/.github/dependabot.yml) no longer look necessary: the dependency that caused the breakage now declares support for the newest major.
+
+          \`\`\`
+          $(grep -v '^ACTIONABLE:' result.txt)
+          \`\`\`
+
+          Remove the rule, let Dependabot open the bump PR, and confirm \`npm ci\` and \`npm run lint\` pass before merging.
+          EOF
+          )
+
+          existing=$(gh issue list --search "$title in:title" --state open --json number --jq '.[0].number')
+          if [ -n "$existing" ]; then
+            gh issue edit "$existing" --body "$body"
+          else
+            gh issue create --title "$title" --body "$body" --label dependencies
+          fi
