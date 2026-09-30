@@ -1,11 +1,11 @@
 import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { EditState } from './EditState';
-import { stateService } from '../../services/stateService';
-import { createQueryClient, renderWithProviders } from '../../testUtils';
-import type { State } from '../../interfaces/state';
+import EditState from './page';
+import { stateService } from '../../../../../services/stateService';
+import { createQueryClient, renderWithProviders } from '../../../../../testUtils';
+import type { State } from '../../../../../interfaces/state';
 
-vi.mock('../../services/stateService', () => ({
+vi.mock('../../../../../services/stateService', () => ({
   stateService: {
     get: vi.fn(),
     update: vi.fn(),
@@ -13,12 +13,17 @@ vi.mock('../../services/stateService', () => ({
   },
 }));
 
-const mockNavigate = vi.hoisted(() => vi.fn());
+// Deviation from the Vite original: that version mocked react-router's
+// useNavigate()/useParams(). EditState.tsx now uses next/navigation's
+// useRouter()/useParams() (the `params` prop is a Server Component
+// convention Next 15+ doesn't offer to Client Components), so both are
+// mocked here instead.
+const mockPush = vi.hoisted(() => vi.fn());
 const mockUseParams = vi.hoisted(() => vi.fn(() => ({ id: '1' })));
-vi.mock('react-router', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('react-router')>();
-  return { ...actual, useNavigate: () => mockNavigate, useParams: mockUseParams };
-});
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: mockPush }),
+  useParams: mockUseParams,
+}));
 
 const state: State = {
   id: 1,
@@ -33,7 +38,7 @@ describe('EditState', () => {
     vi.mocked(stateService.get).mockReset();
     vi.mocked(stateService.update).mockReset();
     vi.mocked(stateService.list).mockReset().mockResolvedValue([]);
-    mockNavigate.mockReset();
+    mockPush.mockReset();
     mockUseParams.mockReturnValue({ id: '1' });
   });
 
@@ -93,7 +98,7 @@ describe('EditState', () => {
         expect.anything(),
       ),
     );
-    expect(mockNavigate).toHaveBeenCalledWith('/');
+    expect(mockPush).toHaveBeenCalledWith('/');
   });
 
   it('shows an error message when updating fails', async () => {
@@ -109,7 +114,7 @@ describe('EditState', () => {
     await user.click(screen.getByRole('button', { name: 'Save' }));
 
     expect(await screen.findByText('Failed to update state.')).toBeInTheDocument();
-    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockPush).not.toHaveBeenCalled();
   });
 
   it('shows the backend error message when the fetch fails', async () => {

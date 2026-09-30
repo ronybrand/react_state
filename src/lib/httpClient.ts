@@ -1,7 +1,7 @@
 import axios, { type AxiosRequestConfig } from 'axios';
 import { clearToken, getToken } from './tokenStorage';
-import { router } from '../router';
 import { LOGIN_PATH } from './apiPaths';
+import { notifySessionExpired } from './sessionExpired';
 
 export const REQUEST_ID_HEADER = 'X-Request-Id';
 export const TIMEOUT_MS = 15000;
@@ -12,7 +12,10 @@ interface RetryConfig extends AxiosRequestConfig {
   _retryCount?: number;
 }
 
-const baseURL = import.meta.env.VITE_API_URL ?? '/api';
+// Vite's import.meta.env.VITE_API_URL becomes Next's
+// process.env.NEXT_PUBLIC_API_URL - the only mechanical change required by
+// the bundler swap; the rest of this file ports unchanged.
+const baseURL = process.env.NEXT_PUBLIC_API_URL ?? '/api';
 
 export const httpClient = axios.create({
   baseURL,
@@ -26,6 +29,10 @@ export const httpClient = axios.create({
 // `${baseURL}evil.com` isn't treated as the API itself.
 function isApiRequest(url: string | undefined): boolean {
   if (!url || !/^https?:\/\//i.test(url)) {
+    return true;
+  }
+
+  if (typeof window === 'undefined') {
     return true;
   }
 
@@ -68,9 +75,23 @@ httpClient.interceptors.response.use(undefined, async (error) => {
   // Guards against concurrent in-flight requests each triggering their own
   // clearToken()/navigate when a session expires: only the first 401 to see
   // a token still present does the redirect, the rest are no-ops here.
-  if (status === 401 && !config?.url?.endsWith(LOGIN_PATH) && getToken()) {
+  //
+  // Deviation from the Vite original: that version imported react-router's
+  // `router` singleton and called `router.navigate(...)` imperatively from
+  // outside React. Next.js's App Router has no equivalent importable
+  // singleton (`next/navigation`'s router is only available via the
+  // `useRouter()` hook inside components), so this notifies a module-level
+  // subscriber instead (see sessionExpired.ts) - a client component near
+  // the app's root subscribes on mount and does the actual
+  // useRouter().push('/login') from within React.
+  if (
+    status === 401 &&
+    !config?.url?.endsWith(LOGIN_PATH) &&
+    getToken() &&
+    typeof window !== 'undefined'
+  ) {
     clearToken();
-    router.navigate('/login', { replace: true });
+    notifySessionExpired();
     throw error;
   }
 

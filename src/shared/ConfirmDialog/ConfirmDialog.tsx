@@ -1,3 +1,5 @@
+'use client';
+
 import { forwardRef, useImperativeHandle, useRef } from 'react';
 
 export interface ConfirmDialogHandle {

@@ -14,6 +14,14 @@ describe('tokenStorage', () => {
     expect(getToken()).toBeNull();
   });
 
+  it('returns null without touching localStorage when window is undefined (SSR)', () => {
+    vi.stubGlobal('window', undefined);
+
+    expect(getToken()).toBeNull();
+
+    vi.unstubAllGlobals();
+  });
+
   it('setToken followed by getToken returns the same value', () => {
     setToken('meu-token');
 

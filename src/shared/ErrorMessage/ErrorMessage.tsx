@@ -1,3 +1,5 @@
+'use client';
+
 interface ErrorMessageProps {
   error: string | null;
   requestId: string | null;

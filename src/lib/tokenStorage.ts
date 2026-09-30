@@ -5,6 +5,9 @@ const TOKEN_KEY = 'estado_jwt';
 // expiration and single-admin scope of the backend's ADR 0017 (see
 // isTokenValid below).
 export function getToken(): string | null {
+  if (typeof window === 'undefined') {
+    return null;
+  }
   return localStorage.getItem(TOKEN_KEY);
 }
 

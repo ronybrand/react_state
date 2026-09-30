@@ -1,27 +1,26 @@
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { CreateState } from './CreateState';
-import { stateService } from '../../services/stateService';
-import { renderWithProviders } from '../../testUtils';
+import CreateState from './page';
+import { stateService } from '../../../../services/stateService';
+import { renderWithProviders } from '../../../../testUtils';
 
-vi.mock('../../services/stateService', () => ({
+vi.mock('../../../../services/stateService', () => ({
   stateService: {
     create: vi.fn(),
     list: vi.fn().mockResolvedValue([]),
   },
 }));
 
-const mockNavigate = vi.hoisted(() => vi.fn());
-vi.mock('react-router', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('react-router')>();
-  return { ...actual, useNavigate: () => mockNavigate };
-});
+const mockPush = vi.hoisted(() => vi.fn());
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: mockPush }),
+}));
 
 describe('CreateState', () => {
   beforeEach(() => {
     vi.mocked(stateService.create).mockReset();
     vi.mocked(stateService.list).mockReset().mockResolvedValue([]);
-    mockNavigate.mockReset();
+    mockPush.mockReset();
   });
 
   it('rejects an abbreviation that already exists among the fetched states', async () => {
@@ -64,7 +63,7 @@ describe('CreateState', () => {
     await user.tab();
     await user.click(screen.getByRole('button', { name: 'Save' }));
 
-    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/'));
+    await waitFor(() => expect(mockPush).toHaveBeenCalledWith('/'));
     expect(stateService.create).toHaveBeenCalledWith(
       { abbreviation: 'RJ', name: 'Rio de Janeiro' },
       expect.anything(),
@@ -83,6 +82,6 @@ describe('CreateState', () => {
     await user.click(screen.getByRole('button', { name: 'Save' }));
 
     expect(await screen.findByText('Failed to create state.')).toBeInTheDocument();
-    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockPush).not.toHaveBeenCalled();
   });
 });

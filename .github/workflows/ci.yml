@@ -66,6 +66,15 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      # Built as its own step, not inside webServer's command: letting
+      # Playwright's webServer run `next build && next start` together was
+      # unreliable in this container specifically - script chunk requests
+      # 404'd against the built HTML's references (see PR discussion),
+      # something about this container's overlay filesystem racing the
+      # build's own output with `next start` picking it up. Building first
+      # and having webServer just run `next start` against an
+      # already-finished build removes that race entirely.
+      - run: npm run build
       - run: npm run e2e
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: ${{ !cancelled() }}

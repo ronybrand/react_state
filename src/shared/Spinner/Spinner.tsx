@@ -1,3 +1,5 @@
+'use client';
+
 export function Spinner() {
   return (
     <div role="status" className="flex justify-center py-4">

@@ -1,21 +1,28 @@
-import { Link, Outlet, useNavigate } from 'react-router';
+'use client';
+
+import type { ReactNode } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Footer } from '../Footer/Footer';
 import { Icon } from '../Icon/Icon';
 import { authService } from '../../services/authService';
 import { isTokenValid } from '../../lib/tokenStorage';
 
-export function Layout() {
-  const navigate = useNavigate();
+// Vite original wrapped react-router's <Outlet/> - Next's App Router has no
+// nested-route outlet, so this now takes `children` and is rendered from
+// app/layout.tsx around {children} directly.
+export function Layout({ children }: { children: ReactNode }) {
+  const router = useRouter();
 
   function handleLogout() {
     authService.logout();
-    navigate('/login');
+    router.push('/login');
   }
 
   return (
     <div className="flex min-h-screen flex-col">
       <nav className="bg-brand flex items-center justify-between px-4 py-3">
-        <Link to="/" className="font-display text-lg font-semibold text-white">
+        <Link href="/" className="font-display text-lg font-semibold text-white">
           State CRUD - React/Java
         </Link>
         {isTokenValid() && (
@@ -30,9 +37,7 @@ export function Layout() {
           </button>
         )}
       </nav>
-      <div className="flex-1">
-        <Outlet />
-      </div>
+      <div className="flex-1">{children}</div>
       <Footer />
     </div>
   );

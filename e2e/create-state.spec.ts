@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { mockCreateState, mockError } from './fixtures/states';
 import { authenticated } from './fixtures/auth';
+import { errorAlert } from './fixtures/errorAlert';
 
 // StateForm validates on blur (mode: 'onBlur'), so isValid only updates
 // after the last edited field loses focus - filling a field alone isn't
@@ -42,6 +43,6 @@ test.describe('Create state', () => {
     await fillValidForm(page);
     await page.getByRole('button', { name: 'Save' }).click();
 
-    await expect(page.getByRole('alert')).toContainText('Failed to create state.');
+    await expect(errorAlert(page)).toContainText('Failed to create state.');
   });
 });

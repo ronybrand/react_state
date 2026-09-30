@@ -1,6 +1,6 @@
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { Login } from './Login';
+import Login from './page';
 import { authService } from '../../services/authService';
 import { renderWithProviders } from '../../testUtils';
 
@@ -10,16 +10,18 @@ vi.mock('../../services/authService', () => ({
   },
 }));
 
-const mockNavigate = vi.hoisted(() => vi.fn());
-vi.mock('react-router', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('react-router')>();
-  return { ...actual, useNavigate: () => mockNavigate };
-});
+// Deviation from the Vite original: that version mocked react-router's
+// useNavigate(). This mocks next/navigation's useRouter() instead, since
+// Login.tsx now calls router.push() rather than navigate().
+const mockPush = vi.hoisted(() => vi.fn());
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: mockPush }),
+}));
 
 describe('Login', () => {
   beforeEach(() => {
     vi.mocked(authService.login).mockReset();
-    mockNavigate.mockReset();
+    mockPush.mockReset();
   });
 
   it('logs in and navigates to the list', async () => {
@@ -33,7 +35,7 @@ describe('Login', () => {
     await user.tab();
     await user.click(screen.getByRole('button', { name: 'Log in' }));
 
-    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/'));
+    await waitFor(() => expect(mockPush).toHaveBeenCalledWith('/'));
     expect(authService.login).toHaveBeenCalledWith(
       { username: 'admin', password: 'senha' },
       expect.anything(),
@@ -82,7 +84,7 @@ describe('Login', () => {
     await waitFor(() => expect(authService.login).toHaveBeenCalledTimes(1));
 
     resolveLogin({ token: 'token', expiresInSeconds: 3600 });
-    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/'));
+    await waitFor(() => expect(mockPush).toHaveBeenCalledWith('/'));
   });
 
   it('shows the backend error message when login fails', async () => {
@@ -97,6 +99,6 @@ describe('Login', () => {
     await user.click(screen.getByRole('button', { name: 'Log in' }));
 
     expect(await screen.findByText('Invalid username or password.')).toBeInTheDocument();
-    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockPush).not.toHaveBeenCalled();
   });
 });

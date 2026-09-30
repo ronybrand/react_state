@@ -10,7 +10,7 @@ Husky's `lint-staged` hook only formats files staged in the current commit; don'
 
 Each major-bump `ignore` rule in `.github/dependabot.yml` fixes a real (not theoretical) broken `npm ci`/lint. See the comment next to each rule for why — don't duplicate that reasoning here, keep it in one place so it can't drift out of sync.
 
-`.github/workflows/dependabot-ignore-check.yml` (monthly + manually triggerable via `workflow_dispatch` in the Actions tab) re-evaluates those rules and opens/updates a single tracking issue when one becomes removable. Don't remove an `ignore` rule without first letting dependabot open the bump PR and confirming CI passes. When you add a new `ignore` rule, add a matching check to that workflow.
+There are currently no `ignore` rules: the ones that existed pre-Next.js-migration (`eslint`/`@eslint/js`/`typescript`/`eslint-plugin-react-hooks` peer-dependency traps) were about packages that are no longer direct dependencies — `eslint-config-next` bundles its own equivalents now. `.github/workflows/dependabot-ignore-check.yml` (the workflow that used to re-evaluate them) was removed along with the rules it checked; if a similar peer-dependency trap resurfaces through `eslint-config-next` or another dependency, add both a new `ignore` rule (with its own comment explaining the real breakage) and a matching automated check, following the pattern the removed workflow used.
 
 ## Coverage gate
 
@@ -25,3 +25,13 @@ statuses). Branch protection on `master` requires `build`, `lint`, `test`,
 - `ci.yml`: `lint` (format:check + eslint), `test` (vitest + coverage → Codecov), `build` — all run on PR and push to `master`.
 - `codeql.yml`: security scan, runs on PR/push/weekly.
 - `dependabot-auto-merge.yml`: auto-merges only non-major dependabot PRs, gated on required checks.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

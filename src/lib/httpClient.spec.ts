@@ -1,24 +1,30 @@
 import MockAdapter from 'axios-mock-adapter';
 import { httpClient, REQUEST_ID_HEADER, RETRY_DELAY_MS } from './httpClient';
 import { clearToken, getToken, setToken } from './tokenStorage';
-import { router } from '../router';
+import { onSessionExpired } from './sessionExpired';
 
-vi.mock('../router', () => ({
-  router: { navigate: vi.fn() },
-}));
-
+// Deviation from the Vite original: that version mocked react-router's
+// `router` singleton and asserted `router.navigate('/login', { replace:
+// true })`. This port's httpClient notifies sessionExpired.ts instead (see
+// the comment in httpClient.ts on why there's no App Router equivalent of
+// an importable navigate() outside components), so these tests subscribe
+// to that in place of a router mock.
 describe('httpClient', () => {
   let mock: MockAdapter;
+  let sessionExpiredListener: ReturnType<typeof vi.fn>;
+  let unsubscribe: () => void;
 
   beforeEach(() => {
     mock = new MockAdapter(httpClient);
     clearToken();
-    vi.mocked(router.navigate).mockClear();
+    sessionExpiredListener = vi.fn();
+    unsubscribe = onSessionExpired(sessionExpiredListener);
   });
 
   afterEach(() => {
     mock.restore();
     clearToken();
+    unsubscribe();
   });
 
   it('sends an X-Request-Id (UUID) on every request', async () => {
@@ -143,7 +149,7 @@ describe('httpClient', () => {
     await httpClient.get(`${base}/state/`);
   });
 
-  it('clears the token and navigates to /login on a 401, without retrying', async () => {
+  it('clears the token and redirects to /login on a 401, without retrying', async () => {
     setToken('token-existente');
     let attempts = 0;
     mock.onPost('/state/').reply(() => {
@@ -155,10 +161,10 @@ describe('httpClient', () => {
 
     expect(attempts).toBe(1);
     expect(getToken()).toBeNull();
-    expect(router.navigate).toHaveBeenCalledWith('/login', { replace: true });
+    expect(sessionExpiredListener).toHaveBeenCalledTimes(1);
   });
 
-  it('only navigates once when concurrent requests all 401', async () => {
+  it('only redirects once when concurrent requests all 401', async () => {
     setToken('token-existente');
     mock.onGet('/state/a').reply(() => [401, { message: 'Nao autenticado' }]);
     mock.onGet('/state/b').reply(() => [401, { message: 'Nao autenticado' }]);
@@ -166,11 +172,10 @@ describe('httpClient', () => {
     await Promise.allSettled([httpClient.get('/state/a'), httpClient.get('/state/b')]);
 
     expect(getToken()).toBeNull();
-    expect(router.navigate).toHaveBeenCalledTimes(1);
-    expect(router.navigate).toHaveBeenCalledWith('/login', { replace: true });
+    expect(sessionExpiredListener).toHaveBeenCalledTimes(1);
   });
 
-  it('does not clear the token or navigate on a 401 from the login request itself', async () => {
+  it('does not clear the token or redirect on a 401 from the login request itself', async () => {
     setToken('token-existente');
     let attempts = 0;
     mock.onPost('/auth/login').reply(() => {
@@ -182,7 +187,7 @@ describe('httpClient', () => {
 
     expect(attempts).toBe(1);
     expect(getToken()).toBe('token-existente');
-    expect(router.navigate).not.toHaveBeenCalled();
+    expect(sessionExpiredListener).not.toHaveBeenCalled();
   });
 
   it('does not clear the token on a non-401 error', async () => {

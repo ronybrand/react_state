@@ -1,3 +1,5 @@
+'use client';
+
 import { ICON_PATHS, type IconName } from './iconPaths';
 
 interface IconProps {

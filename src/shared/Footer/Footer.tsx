@@ -1,3 +1,5 @@
+'use client';
+
 import { useFrontendVersion } from '../../hooks/useFrontendVersion';
 import { useBackendInfo } from '../../hooks/useBackendInfo';
 import { formatDate } from '../../lib/formatDate';

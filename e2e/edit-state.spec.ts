@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { STATES, mockGetState, mockUpdateState, mockError } from './fixtures/states';
 import { authenticated } from './fixtures/auth';
+import { errorAlert } from './fixtures/errorAlert';
 
 test.describe('Edit state', () => {
   test('fills the form once the state arrives asynchronously', async ({ page }) => {
@@ -38,7 +39,7 @@ test.describe('Edit state', () => {
 
     await page.goto('/state/1/edit');
 
-    await expect(page.getByRole('alert')).toContainText('Failed to fetch state.');
+    await expect(errorAlert(page)).toContainText('Failed to fetch state.');
   });
 
   test('shows an error message when updating fails', async ({ page }) => {
@@ -53,6 +54,6 @@ test.describe('Edit state', () => {
     await page.locator('#name').fill('São Paulo Updated');
     await page.getByRole('button', { name: 'Save' }).click();
 
-    await expect(page.getByRole('alert')).toContainText('Failed to update state.');
+    await expect(errorAlert(page)).toContainText('Failed to update state.');
   });
 });

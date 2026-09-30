@@ -1,21 +1,23 @@
+'use client';
+
 import { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router';
-import { useStates } from '../../hooks/useStates';
-import { useDeleteState } from '../../hooks/useDeleteState';
-import { useErrorMessage } from '../../shared/ErrorMessage/useErrorMessage';
-import { ErrorMessage } from '../../shared/ErrorMessage/ErrorMessage';
-import { Spinner } from '../../shared/Spinner/Spinner';
-import { Icon } from '../../shared/Icon/Icon';
-import { ConfirmDialog, type ConfirmDialogHandle } from '../../shared/ConfirmDialog/ConfirmDialog';
-import { extractRequestId } from '../../lib/extractRequestId';
-import { formatDate } from '../../lib/formatDate';
+import Link from 'next/link';
+import { useStates } from '../hooks/useStates';
+import { useDeleteState } from '../hooks/useDeleteState';
+import { useErrorMessage } from '../shared/ErrorMessage/useErrorMessage';
+import { ErrorMessage } from '../shared/ErrorMessage/ErrorMessage';
+import { Spinner } from '../shared/Spinner/Spinner';
+import { Icon } from '../shared/Icon/Icon';
+import { ConfirmDialog, type ConfirmDialogHandle } from '../shared/ConfirmDialog/ConfirmDialog';
+import { extractRequestId } from '../lib/extractRequestId';
+import { formatDate } from '../lib/formatDate';
 
 type SortField = 'nome' | 'sigla';
 type SortDirection = 'asc' | 'desc';
 
 const DEBOUNCE_MS = 300;
 
-export function StateList() {
+export default function StateList() {
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [sortField, setSortField] = useState<SortField | null>(null);
@@ -100,7 +102,7 @@ export function StateList() {
 
       <div className="mb-4 text-right">
         <Link
-          to="/state/new"
+          href="/state/new"
           className="bg-success hover:bg-success/90 inline-flex items-center gap-1 rounded px-3 py-1.5 text-sm text-white"
         >
           <Icon name="plus" />
@@ -133,7 +135,7 @@ export function StateList() {
             <div className="py-3 text-center text-gray-500">
               <p>No states registered.</p>
               <Link
-                to="/state/new"
+                href="/state/new"
                 className="bg-success hover:bg-success/90 mt-2 inline-block rounded px-3 py-1 text-sm text-white"
               >
                 Create the first state
@@ -193,7 +195,7 @@ export function StateList() {
                     </td>
                     <td className="space-x-1 p-2">
                       <Link
-                        to={`/state/${state.id}/edit`}
+                        href={`/state/${state.id}/edit`}
                         aria-label={`Edit ${state.abbreviation}`}
                         className="bg-brand hover:bg-brand-dark inline-flex items-center gap-1 rounded px-2 py-1 text-white"
                       >

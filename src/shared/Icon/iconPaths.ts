@@ -1,3 +1,5 @@
+'use client';
+
 export type IconName =
   'plus' | 'pencil' | 'trash' | 'check' | 'chevron-up' | 'chevron-down' | 'box-arrow-right';
 

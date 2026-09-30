@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { STATES, pageOf, mockStateList, mockDeleteState, mockError } from './fixtures/states';
+import { errorAlert } from './fixtures/errorAlert';
 
 test.describe('State list', () => {
   test('shows a loading indicator, then the states once the response arrives', async ({ page }) => {
@@ -26,7 +27,7 @@ test.describe('State list', () => {
     await mockError(page, '**/api/estado/paginado**', 500);
     await page.goto('/');
 
-    await expect(page.getByRole('alert')).toContainText('Failed to fetch states.');
+    await expect(errorAlert(page)).toContainText('Failed to fetch states.');
   });
 
   test('deletes a state after confirmation', async ({ page }) => {
@@ -86,7 +87,7 @@ test.describe('State list', () => {
     await page.getByRole('button', { name: 'Delete SP' }).click();
     await page.getByRole('button', { name: 'Confirm' }).click();
 
-    await expect(page.getByRole('alert')).toContainText('Failed to delete state.');
+    await expect(errorAlert(page)).toContainText('Failed to delete state.');
     await expect(page.getByRole('row', { name: /SP.*São Paulo/ })).toBeVisible();
   });
 });

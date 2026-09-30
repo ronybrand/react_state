@@ -1,18 +1,24 @@
-import { useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router';
-import { StateForm } from '../../shared/StateForm/StateForm';
-import { FormPage } from '../../shared/FormPage/FormPage';
-import { useErrorMessage } from '../../shared/ErrorMessage/useErrorMessage';
-import { Spinner } from '../../shared/Spinner/Spinner';
-import { useStateById } from '../../hooks/useStateById';
-import { useStates } from '../../hooks/useStates';
-import { useUpdateState } from '../../hooks/useUpdateState';
-import { extractRequestId } from '../../lib/extractRequestId';
-import type { NewState } from '../../interfaces/state';
+'use client';
 
-export function EditState() {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
+import { useEffect } from 'react';
+import { useRouter, useParams } from 'next/navigation';
+import { StateForm } from '../../../../../shared/StateForm/StateForm';
+import { FormPage } from '../../../../../shared/FormPage/FormPage';
+import { useErrorMessage } from '../../../../../shared/ErrorMessage/useErrorMessage';
+import { Spinner } from '../../../../../shared/Spinner/Spinner';
+import { useStateById } from '../../../../../hooks/useStateById';
+import { useStates } from '../../../../../hooks/useStates';
+import { useUpdateState } from '../../../../../hooks/useUpdateState';
+import { extractRequestId } from '../../../../../lib/extractRequestId';
+import type { NewState } from '../../../../../interfaces/state';
+
+// Client Component, so `useParams()` from next/navigation is used instead
+// of the route's `params` prop (which in Next 15+ App Router is a Promise
+// meant for Server Components).
+export default function EditState() {
+  const params = useParams<{ id: string }>();
+  const id = params.id;
+  const router = useRouter();
   const stateId = Number(id);
   const validId = id !== undefined && Number.isInteger(stateId) && stateId > 0;
 
@@ -45,7 +51,7 @@ export function EditState() {
     updateState.mutate(
       { ...state, ...data },
       {
-        onSuccess: () => navigate('/'),
+        onSuccess: () => router.push('/'),
         onError: (err) => {
           setError('Failed to update state.', extractRequestId(err));
         },

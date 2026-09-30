@@ -1,12 +1,23 @@
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { AxiosError, AxiosHeaders } from 'axios';
-import { StateList } from './StateList';
-import { stateService } from '../../services/stateService';
-import { renderWithProviders } from '../../testUtils';
-import type { State } from '../../interfaces/state';
+import StateList from './page';
+import { stateService } from '../services/stateService';
+import { renderWithProviders } from '../testUtils';
+import type { State } from '../interfaces/state';
 
-vi.mock('../../services/stateService', () => ({
+// next/link requires an App Router context that isn't mounted under plain
+// Testing Library render() - mocked as a plain <a> (component defined
+// inline, not imported, since vi.mock factories are hoisted above imports).
+vi.mock('next/link', () => ({
+  default: ({ href, children, ...rest }: React.ComponentProps<'a'>) => (
+    <a href={href} {...rest}>
+      {children}
+    </a>
+  ),
+}));
+
+vi.mock('../services/stateService', () => ({
   stateService: {
     list: vi.fn(),
     delete: vi.fn(),
@@ -23,7 +34,7 @@ const states: State[] = [
   },
 ];
 
-describe('StateList', () => {
+describe('StateList (app/page.tsx)', () => {
   beforeEach(() => {
     vi.mocked(stateService.list).mockReset();
     vi.mocked(stateService.delete).mockReset();
@@ -80,11 +91,6 @@ describe('StateList', () => {
   });
 
   it('shows the English fallback, not the backend message, when the backend fails', async () => {
-    // The backend has no i18n - every message it sends is hardcoded
-    // Portuguese (see CustomGlobalExceptionHandler.java in the estado
-    // repo). This UI is English throughout, so showing that text verbatim
-    // would mix languages on screen - the fallback string is always used
-    // instead, the backend message is never rendered.
     const error = new AxiosError('error', undefined, undefined, undefined, {
       data: { message: 'Estado nao encontrado: id=999' },
       status: 404,
@@ -149,10 +155,6 @@ describe('StateList', () => {
   });
 
   it('debounces the search box, calling list once with the latest value after 300ms', async () => {
-    // Real timers here, not fake ones: userEvent.type's internal per-key
-    // delay plus React Query's own scheduling made fake timers + act()
-    // brittle (hangs) in this combination. The 300ms debounce is short
-    // enough to just let it elapse for real.
     vi.mocked(stateService.list).mockResolvedValue(states);
     const user = userEvent.setup();
 
@@ -204,11 +206,6 @@ describe('StateList', () => {
     renderWithProviders(<StateList />);
     await screen.findByText('São Paulo');
 
-    // Sorting changes the TanStack Query key (it includes sort), so React
-    // Query treats it as a brand-new query and the table unmounts behind
-    // the spinner until it resolves - re-querying the DOM after each click
-    // (instead of reusing button references captured before it) avoids
-    // asserting against nodes React has already thrown away.
     await user.click(screen.getByRole('button', { name: /Abbreviation/i }));
     await screen.findByText('São Paulo');
     expect(screen.getByRole('button', { name: /Abbreviation/i }).querySelector('svg')).toBeTruthy();
