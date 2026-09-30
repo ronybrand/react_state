@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { GET, POST, PUT, DELETE } from './route';
+import { GET, POST, PUT, DELETE, MAX_BODY_BYTES } from './route';
 
 const BACKEND_BASE_URL = 'http://backend.internal:8080';
 const REQUEST_ID = '123e4567-e89b-12d3-a456-426614174000';
@@ -236,6 +236,46 @@ describe('app/api/[...path] route (backend proxy)', () => {
     expect(response.headers.get('Content-Security-Policy')).toBe(
       "default-src 'none'; frame-ancestors 'none'; sandbox",
     );
+  });
+
+  it('rejects a body over the size limit with a 413, without calling the backend', async () => {
+    const request = makeRequest('POST', 'http://localhost:3000/api/estado/', {
+      body: 'x'.repeat(MAX_BODY_BYTES + 1),
+    });
+    const response = await POST(request, { params: Promise.resolve({ path: ['estado', ''] }) });
+
+    expect(response.status).toBe(413);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('rejects an oversized body even when Content-Length is missing (streamed)', async () => {
+    const chunk = new TextEncoder().encode('x'.repeat(MAX_BODY_BYTES / 2 + 1));
+    const stream = new ReadableStream({
+      start(controller) {
+        controller.enqueue(chunk);
+        controller.enqueue(chunk);
+        controller.close();
+      },
+    });
+    const request = new NextRequest('http://localhost:3000/api/estado/', {
+      method: 'POST',
+      body: stream,
+      duplex: 'half',
+    } as ConstructorParameters<typeof NextRequest>[1]);
+    const response = await POST(request, { params: Promise.resolve({ path: ['estado', ''] }) });
+
+    expect(response.status).toBe(413);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('accepts a body exactly at the limit', async () => {
+    fetchMock.mockResolvedValue(jsonResponse('{}', 201));
+    const body = 'x'.repeat(MAX_BODY_BYTES);
+
+    const request = makeRequest('POST', 'http://localhost:3000/api/estado/', { body });
+    const response = await POST(request, { params: Promise.resolve({ path: ['estado', ''] }) });
+
+    expect(response.status).toBe(201);
   });
 
   describe('client IP forwarding', () => {
