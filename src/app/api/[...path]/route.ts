@@ -1,3 +1,4 @@
+import { isIP } from 'node:net';
 import { NextRequest, NextResponse } from 'next/server';
 import { UUID_REGEX } from '../../../lib/extractRequestId';
 
@@ -18,6 +19,8 @@ import { UUID_REGEX } from '../../../lib/extractRequestId';
 // app with connect-src CSP violations and a doubled /estado/estado path
 // (httpClient's own /estado prefix on top of the full backend URL).
 const REQUEST_ID_HEADER = 'X-Request-Id';
+const CLIENT_IP_HEADER = 'X-Client-IP';
+const PROXY_SECRET_HEADER = 'X-Proxy-Secret';
 
 // Shorter than httpClient's 15s timeout on purpose: the proxy has to give up
 // first so the client gets a clean 504 it can retry (GET), instead of its own
@@ -115,6 +118,21 @@ async function proxy(request: NextRequest, params: RouteParams['params']): Promi
   // arbitrary string (log injection, markup) is dropped, not passed along.
   if (requestId && UUID_REGEX.test(requestId)) {
     headers[REQUEST_ID_HEADER] = requestId;
+  }
+
+  // The backend rate-limits per IP, but everything it sees from here comes
+  // from Vercel's own egress IPs - so without this, every visitor shares one
+  // bucket (a handful of login attempts a minute locks everyone out).
+  // x-vercel-forwarded-for is set by Vercel's edge and can't be supplied by
+  // the client. It is sent with a shared secret because the backend must not
+  // trust a plain X-Client-IP header from anyone who can reach it directly;
+  // both are built here from scratch, never copied from the incoming
+  // request, so a browser can't inject either.
+  const proxySecret = process.env.BACKEND_PROXY_SECRET;
+  const clientIp = request.headers.get('x-vercel-forwarded-for')?.trim();
+  if (proxySecret && clientIp && isIP(clientIp)) {
+    headers[CLIENT_IP_HEADER] = clientIp;
+    headers[PROXY_SECRET_HEADER] = proxySecret;
   }
 
   const hasBody =

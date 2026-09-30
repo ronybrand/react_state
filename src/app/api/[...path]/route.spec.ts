@@ -278,6 +278,82 @@ describe('app/api/[...path] route (backend proxy)', () => {
     expect(response.status).toBe(201);
   });
 
+  describe('client IP forwarding', () => {
+    const CLIENT_IP = '203.0.113.7';
+
+    async function proxiedHeaders(incoming: Record<string, string>) {
+      fetchMock.mockResolvedValue(jsonResponse('{}', 200));
+      const request = new NextRequest('http://localhost:3000/api/estado/1', {
+        method: 'GET',
+        headers: new Headers(incoming),
+      });
+      await GET(request, { params: Promise.resolve({ path: ['estado', '1'] }) });
+      const [, options] = fetchMock.mock.calls[0] as [string, { headers: Record<string, string> }];
+      return options.headers;
+    }
+
+    afterEach(() => {
+      vi.unstubAllEnvs();
+    });
+
+    it('sends the Vercel client IP with the shared secret', async () => {
+      vi.stubEnv('BACKEND_PROXY_SECRET', 's3cret');
+
+      const headers = await proxiedHeaders({ 'x-vercel-forwarded-for': CLIENT_IP });
+
+      expect(headers['X-Client-IP']).toBe(CLIENT_IP);
+      expect(headers['X-Proxy-Secret']).toBe('s3cret');
+    });
+
+    it('sends nothing when BACKEND_PROXY_SECRET is not configured', async () => {
+      vi.stubEnv('BACKEND_PROXY_SECRET', '');
+
+      const headers = await proxiedHeaders({ 'x-vercel-forwarded-for': CLIENT_IP });
+
+      expect(headers['X-Client-IP']).toBeUndefined();
+      expect(headers['X-Proxy-Secret']).toBeUndefined();
+    });
+
+    it('sends nothing when the request has no Vercel client IP (local dev, direct hit)', async () => {
+      vi.stubEnv('BACKEND_PROXY_SECRET', 's3cret');
+
+      const headers = await proxiedHeaders({});
+
+      expect(headers['X-Client-IP']).toBeUndefined();
+      expect(headers['X-Proxy-Secret']).toBeUndefined();
+    });
+
+    it('sends nothing when the forwarded value is not a single IP address', async () => {
+      vi.stubEnv('BACKEND_PROXY_SECRET', 's3cret');
+
+      const headers = await proxiedHeaders({ 'x-vercel-forwarded-for': '1.2.3.4, 5.6.7.8' });
+
+      expect(headers['X-Client-IP']).toBeUndefined();
+    });
+
+    it('never copies X-Client-IP / X-Proxy-Secret supplied by the caller', async () => {
+      vi.stubEnv('BACKEND_PROXY_SECRET', 's3cret');
+
+      const headers = await proxiedHeaders({
+        'x-client-ip': '6.6.6.6',
+        'x-proxy-secret': 'guess',
+        'x-vercel-forwarded-for': CLIENT_IP,
+      });
+
+      expect(headers['X-Client-IP']).toBe(CLIENT_IP);
+      expect(headers['X-Proxy-Secret']).toBe('s3cret');
+    });
+
+    it('does not forward a caller-supplied X-Client-IP when there is no Vercel IP', async () => {
+      vi.stubEnv('BACKEND_PROXY_SECRET', 's3cret');
+
+      const headers = await proxiedHeaders({ 'x-client-ip': '6.6.6.6', 'x-proxy-secret': 'guess' });
+
+      expect(headers['X-Client-IP']).toBeUndefined();
+      expect(headers['X-Proxy-Secret']).toBeUndefined();
+    });
+  });
+
   it('returns a 502 when the backend is unreachable', async () => {
     fetchMock.mockRejectedValue(new Error('ECONNREFUSED'));
 
