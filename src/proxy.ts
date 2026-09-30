@@ -1,41 +1,32 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
-// The App Router injects its own inline bootstrap/RSC-payload <script> tags
-// (self.__next_f.push(...)) - a static `script-src 'self'` CSP (the direct
-// port of the old Vite app's vercel.json headers) blocks those and breaks
-// hydration entirely (Next throws "Invariant: Expected a request ID to be
-// defined for the document via self.__next_r").
+// Per-request nonce CSP, as documented at
+// https://nextjs.org/docs/app/guides/content-security-policy.
 //
-// Next's documented fix is a per-request nonce, echoed back in the CSP
-// header so Next can apply it to its own inline scripts automatically -
-// tried first, along with a 'strict-dynamic' variant. Both reproducibly
-// broke hydration specifically in the Playwright container CI's e2e job
-// runs in (~14/52 tests passing, forms never becoming interactive - e.g.
-// the login button staying permanently disabled) while passing 52/52 on
-// every other browser/machine this was tested on, including a local
-// reproduction of that same container image. Adding 'unsafe-inline'
-// alongside the nonce as a fallback didn't help either: per the CSP3 spec,
-// a browser that understands `nonce-` ignores 'unsafe-inline' whenever a
-// nonce is present at all, matching or not - so if that container's
-// browser build has a nonce-matching bug rather than simply not supporting
-// nonces, the fallback would have been silently ignored, same as no
-// fallback. The exact engine-level cause was never isolated (see PR #56
-// discussion) - removing the CSP outright, as a diagnostic, was the only
-// change that made that job go green.
+// Two things have to hold for Next to apply the nonce to its own inline
+// bootstrap/RSC-payload <script> tags (self.__next_f.push(...)):
+//   1. The CSP header must be on the *request* forwarded to the render, not
+//      only on the response - Next parses the nonce out of the request
+//      header while rendering. (An earlier version of this file only set the
+//      response header, so the inline scripts never got a nonce and were
+//      blocked, which broke hydration.)
+//   2. The page must be dynamically rendered - a page prerendered at build
+//      time has no request, hence no nonce. app/layout.tsx opts the whole
+//      app into dynamic rendering for this reason.
 //
-// So there's no nonce here. `script-src 'self' 'unsafe-inline'` is the
-// fallback that's actually reachable regardless of nonce support/bugs:
-// 'self' covers every same-origin <script src> chunk Turbopack emits, and
-// 'unsafe-inline' allows the inline RSC-payload scripts 'self' can't match
-// by origin. Known, accepted trade-off: this app no longer restricts
-// *which* inline scripts run, only that scripts loaded from other origins
-// don't - see https://nextjs.org/docs/app/guides/content-security-policy
-// if a future engine-specific fix for the nonce approach is worth
-// revisiting.
-export function proxy() {
+// 'strict-dynamic' lets the nonced bootstrap scripts load the Turbopack
+// chunks they reference, so 'self' is only the fallback for browsers that
+// don't understand it. style-src keeps 'unsafe-inline': style injection is a
+// much smaller risk than script injection, and Next/React emit inline
+// style attributes a nonce can't cover.
+export function proxy(request: NextRequest) {
+  const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
+  const isDev = process.env.NODE_ENV === 'development';
+
   const csp = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline'",
+    // React uses eval in development for enhanced error stacks; production doesn't.
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ''}`,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data:",
     "font-src 'self'",
@@ -45,14 +36,25 @@ export function proxy() {
     "frame-ancestors 'none'",
   ].join('; ');
 
-  const response = NextResponse.next();
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set('x-nonce', nonce);
+  requestHeaders.set('Content-Security-Policy', csp);
+
+  const response = NextResponse.next({ request: { headers: requestHeaders } });
   response.headers.set('Content-Security-Policy', csp);
   return response;
 }
 
 export const config = {
   matcher: [
-    // Skip static assets - only document/route requests need the CSP.
-    '/((?!_next/static|_next/image|favicon.ico).*)',
+    {
+      // Only document requests need the CSP: skip the API proxy, static
+      // assets, and link prefetches.
+      source: '/((?!api|_next/static|_next/image|favicon.ico).*)',
+      missing: [
+        { type: 'header', key: 'next-router-prefetch' },
+        { type: 'header', key: 'purpose', value: 'prefetch' },
+      ],
+    },
   ],
 };
