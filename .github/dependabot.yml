@@ -34,27 +34,6 @@ updates:
       # dep catches up.
       - dependency-name: 'eslint'
         update-types: ['version-update:semver-major']
-      # vitest 5's Mock/vi.fn() typing broke src/lib/httpClient.spec.ts's
-      # onSessionExpired listener mock (PR #60: `next build`'s typecheck
-      # failed with "Mock<Procedure | Constructable> ... provides no match
-      # for the signature '(): void'"). A real app-code incompatibility,
-      # not just a transitive-dependency trap - needs the test file
-      # adjusted for vitest 5's typing before taking this major.
-      - dependency-name: 'vitest'
-        update-types: ['version-update:semver-major']
-      - dependency-name: '@vitest/coverage-v8'
-        update-types: ['version-update:semver-major']
-      # @vitejs/plugin-react is coupled to vitest's major, not just its own:
-      # vitest.config.ts imports it for tests' React JSX transform, and
-      # vitest brings its own peer-range on vite along with it (currently
-      # vitest@3.2.7 -> vite ^5-7, transitively via @vitest/mocker and
-      # vite-node). PR #64 bumped @vitejs/plugin-react alone from 4.7.0 to
-      # 6.1.1, which requires vite@^8 - `npm ci` failed with an ERESOLVE
-      # conflict against the vite version vitest 3.2.7 actually supports.
-      # Revisit once vitest's own major is unstuck (see above) rather than
-      # bumping this independently.
-      - dependency-name: '@vitejs/plugin-react'
-        update-types: ['version-update:semver-major']
 
   - package-ecosystem: github-actions
     directory: /

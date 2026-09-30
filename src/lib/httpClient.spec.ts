@@ -1,4 +1,5 @@
 import MockAdapter from 'axios-mock-adapter';
+import type { Mock } from 'vitest';
 import { httpClient, REQUEST_ID_HEADER, RETRY_DELAY_MS } from './httpClient';
 import { clearToken, getToken, setToken } from './tokenStorage';
 import { onSessionExpired } from './sessionExpired';
@@ -11,7 +12,11 @@ import { onSessionExpired } from './sessionExpired';
 // to that in place of a router mock.
 describe('httpClient', () => {
   let mock: MockAdapter;
-  let sessionExpiredListener: ReturnType<typeof vi.fn>;
+  // Explicitly typed as Mock<() => void>, not ReturnType<typeof vi.fn>:
+  // that grabs vi.fn's generic overload signature unspecialized (vitest
+  // 4+), which types the mock as Mock<Procedure | Constructable> and no
+  // longer satisfies onSessionExpired's Listener (() => void) parameter.
+  let sessionExpiredListener: Mock<() => void>;
   let unsubscribe: () => void;
 
   beforeEach(() => {
