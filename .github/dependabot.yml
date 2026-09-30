@@ -22,10 +22,13 @@ updates:
       # typescript-eslint (bundled by eslint-config-next) doesn't support
       # TS majors as soon as they ship - PR #57 bumped to 7.0.2 and `npm run
       # lint` failed outright with "typescript-eslint does not support TS
-      # 7.0.". Re-evaluate once eslint-config-next's typescript-eslint dep
-      # catches up.
+      # 7.0.". Its peer range is `<6.1.0`, so 6.0.x is fine (the project is on
+      # it) and only 6.1.0+ is blocked - kept as a version bound rather than
+      # a blanket major ignore, which would also have blocked 6.0.x. Re-
+      # evaluate once eslint-config-next's typescript-eslint dep catches up
+      # (scripts/check-dependabot-ignore-rules.sh opens an issue when it does).
       - dependency-name: 'typescript'
-        update-types: ['version-update:semver-major']
+        versions: ['>=6.1.0']
       # eslint-plugin-react (bundled by eslint-config-next) isn't updated
       # for ESLint 10's rule-context API yet - PR #60 bumped to 10.11.0 and
       # `npm run lint` crashed with "TypeError: Error while loading rule
