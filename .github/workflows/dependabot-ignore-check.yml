@@ -21,7 +21,7 @@ jobs:
 
       # Silent unless a rule can be relaxed: the signals always go to the job
       # summary, but an issue is only opened (or refreshed) when the script
-      # prints an ACTIONABLE or PARTIAL line.
+      # prints an ACTIONABLE or PARTIAL line, and closed again once it stops.
       - name: Evaluate the ignore rules
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -48,9 +48,19 @@ jobs:
               esac
             done < <(grep -E '^(ACTIONABLE|PARTIAL):' result.txt)
           )
-          [ -z "$items" ] && exit 0
 
           title="Dependabot ignore rules can be relaxed"
+          existing=$(gh issue list --search "$title in:title" --state open --json number --jq '.[0].number')
+
+          # Nothing left to relax: close the issue this workflow opened, so it
+          # doesn't sit there describing a problem that's already fixed.
+          if [ -z "$items" ]; then
+            if [ -n "$existing" ]; then
+              gh issue close "$existing" --reason completed --comment "The ignore rules are as tight as they need to be again - nothing left to relax."
+            fi
+            exit 0
+          fi
+
           body=$(cat <<EOF
           The \`ignore\` rules in [\`dependabot.yml\`](../blob/master/.github/dependabot.yml) are tighter than they need to be: the dependency that caused each breakage now declares support for a newer major.
 
@@ -62,7 +72,6 @@ jobs:
           EOF
           )
 
-          existing=$(gh issue list --search "$title in:title" --state open --json number --jq '.[0].number')
           if [ -n "$existing" ]; then
             gh issue edit "$existing" --body "$body"
           else
