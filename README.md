@@ -155,6 +155,14 @@ bundle and make the browser call the backend directly, bypassing the proxy
 and tripping the CSP's `connect-src 'self'`. `httpClient` always uses the
 same-origin `/api`.
 
+`BACKEND_PROXY_SECRET` — server-side only, optional: a shared secret that lets
+the backend trust the client IP this app forwards (as `X-Client-IP`, taken
+from Vercel's `x-vercel-forwarded-for`). Without it the backend only sees
+Vercel's egress IPs, so its per-IP rate limits (including the 5-per-minute
+login limit) are shared by every visitor. It must match the backend's
+`RATE_LIMIT_PROXY_SECRET`; if either is unset the app still works, just
+with the shared-IP behaviour.
+
 ## Build
 
 ```bash
