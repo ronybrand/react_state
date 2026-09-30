@@ -2,12 +2,20 @@ import { NextRequest, NextResponse } from 'next/server';
 
 // Full catch-all BFF proxy to the Java backend: every /api/* call the
 // browser makes is same-origin against this Next.js app, which forwards it
-// on to NEXT_PUBLIC_API_URL server-side. Replaces an earlier version of
-// this route that only proxied GET /estado/paginado - that left every
-// other call (auth, create/update/delete, actuator/info) going straight
-// from the browser to the backend's own origin, which needs CORS enabled
-// there and a CSP connect-src naming that origin. Routing everything
-// through here removes that requirement entirely.
+// on to BACKEND_API_URL server-side. Replaces an earlier version of this
+// route that only proxied GET /estado/paginado - that left every other
+// call (auth, create/update/delete, actuator/info) going straight from the
+// browser to the backend's own origin, which needs CORS enabled there and
+// a CSP connect-src naming that origin. Routing everything through here
+// removes that requirement entirely.
+//
+// Deliberately BACKEND_API_URL, not NEXT_PUBLIC_API_URL: a NEXT_PUBLIC_
+// var is inlined into the client bundle, so httpClient.ts (running in the
+// browser) would read the same value and call the backend directly,
+// bypassing this proxy - exactly the CORS/CSP exposure this route exists
+// to avoid. Confirmed in production: setting NEXT_PUBLIC_API_URL broke the
+// app with connect-src CSP violations and a doubled /estado/estado path
+// (httpClient's own /estado prefix on top of the full backend URL).
 interface RouteParams {
   params: Promise<{ path: string[] }>;
 }
@@ -15,8 +23,8 @@ interface RouteParams {
 async function proxy(request: NextRequest, params: RouteParams['params']): Promise<NextResponse> {
   // Read per-request, not module-level: a module-level constant is
   // evaluated once at import time, before tests (or any per-request env
-  // override) can set NEXT_PUBLIC_API_URL.
-  const backendBaseUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080';
+  // override) can set BACKEND_API_URL.
+  const backendBaseUrl = process.env.BACKEND_API_URL ?? 'http://localhost:8080';
   const { path } = await params;
   const search = request.nextUrl.search;
   const backendUrl = `${backendBaseUrl}/${path.join('/')}${search}`;
