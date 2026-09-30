@@ -26,6 +26,24 @@ updates:
       # catches up.
       - dependency-name: 'typescript'
         update-types: ['version-update:semver-major']
+      # eslint-plugin-react (bundled by eslint-config-next) isn't updated
+      # for ESLint 10's rule-context API yet - PR #60 bumped to 10.11.0 and
+      # `npm run lint` crashed with "TypeError: Error while loading rule
+      # 'react/display-name': contextOrFilename.getFilename is not a
+      # function". Re-evaluate once eslint-config-next's eslint-plugin-react
+      # dep catches up.
+      - dependency-name: 'eslint'
+        update-types: ['version-update:semver-major']
+      # vitest 5's Mock/vi.fn() typing broke src/lib/httpClient.spec.ts's
+      # onSessionExpired listener mock (PR #60: `next build`'s typecheck
+      # failed with "Mock<Procedure | Constructable> ... provides no match
+      # for the signature '(): void'"). A real app-code incompatibility,
+      # not just a transitive-dependency trap - needs the test file
+      # adjusted for vitest 5's typing before taking this major.
+      - dependency-name: 'vitest'
+        update-types: ['version-update:semver-major']
+      - dependency-name: '@vitest/coverage-v8'
+        update-types: ['version-update:semver-major']
 
   - package-ecosystem: github-actions
     directory: /
