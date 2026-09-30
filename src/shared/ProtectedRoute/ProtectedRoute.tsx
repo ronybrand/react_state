@@ -1,10 +1,8 @@
 'use client';
 
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
-import { isTokenValid } from '../../lib/tokenStorage';
-
-const EXPIRY_CHECK_INTERVAL_MS = 5000;
+import { useTokenValid } from '../../hooks/useTokenValid';
 
 // Vite original rendered <Navigate/> + <Outlet/> as a react-router layout
 // route. Next's App Router has no equivalent of nested route wrapping for
@@ -13,21 +11,14 @@ const EXPIRY_CHECK_INTERVAL_MS = 5000;
 // (see app/(protected)/layout.tsx).
 export function ProtectedRoute({ children }: { children: ReactNode }) {
   const router = useRouter();
-  const [valid, setValid] = useState(isTokenValid);
-
-  // isTokenValid() is only re-read on render, so a route left mounted in a
-  // background tab past the token's exp would never redirect on its own -
-  // this polls so expiry is caught without requiring a navigation.
-  useEffect(() => {
-    const id = setInterval(() => {
-      setValid(isTokenValid());
-    }, EXPIRY_CHECK_INTERVAL_MS);
-
-    return () => clearInterval(id);
-  }, []);
+  // null = token state not known yet (server render / hydration): render
+  // nothing and, crucially, don't redirect - only a definite `false` does.
+  // useTokenValid also polls, so a route left mounted in a background tab
+  // past the token's exp still redirects without requiring a navigation.
+  const valid = useTokenValid();
 
   useEffect(() => {
-    if (!valid) {
+    if (valid === false) {
       router.replace('/login');
     }
   }, [valid, router]);

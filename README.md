@@ -21,8 +21,8 @@ flowchart LR
 
     subgraph Vercel["Vercel"]
         direction LR
-        Static["Static assets\n(React bundle)"]
-        Rewrite["Rewrite proxy\n(vercel.json)"]
+        Static["Next.js app\n(React bundle)"]
+        Rewrite["/api route handler\n(BFF proxy)"]
     end
 
     subgraph EC2["EC2 (Docker)"]
@@ -37,8 +37,10 @@ flowchart LR
     App --> DB
 ```
 
-The app never talks to the backend's own origin — `vercel.json` rewrites
-`/api/*` to it, so the browser only ever sees the deployment's own origin
+The app never talks to the backend's own origin — the catch-all route
+handler `src/app/api/[...path]/route.ts` forwards `/api/*` to it
+server-side (target: `BACKEND_API_URL`), so the browser only ever sees the
+deployment's own origin
 (see [Deployment](#deployment) below). This diagram is infra/network
 topology, not API routes — it doesn't distinguish `GET` from
 `POST`/`PUT`/`DELETE` on `/estado`, so JWT auth (an internal concern of
@@ -58,22 +60,21 @@ Demo credentials (intentionally public): see the backend's
 
 ## Stack
 
-- [React 19](https://react.dev/) + TypeScript (strict) + [Vite](https://vite.dev/)
+- [React 19](https://react.dev/) + TypeScript (strict) + [Next.js](https://nextjs.org/) (App Router)
 - [TanStack Query](https://tanstack.com/query) for data-fetching, caching, and invalidation
 - [Axios](https://axios-http.com/) with request-id and timeout/retry interceptors
-- [React Router](https://reactrouter.com/) (data router) with lazy-loaded routes
 - [React Hook Form](https://react-hook-form.com/) for form validation
 - [Tailwind CSS](https://tailwindcss.com/) v4
 - [Vitest](https://vitest.dev/) + [React Testing Library](https://testing-library.com/react) for component tests
-- ESLint (typescript-eslint + react-hooks + jsx-a11y) + Prettier + Husky/lint-staged
+- ESLint (`eslint-config-next`) + Prettier + Husky/lint-staged
 
 ## Structure
 
 ```
 src/
-├── pages/               # StateList, CreateState, EditState, Login (routes)
+├── app/                 # App Router: pages, layouts, providers, /api proxy route, error.tsx
 ├── shared/
-│   ├── Layout/             # app shell: title bar + <Outlet/> + Footer
+│   ├── Layout/             # app shell: title bar + children + Footer
 │   ├── Footer/              # FE/BE build info, hides silently on failure
 │   ├── StateForm/            # create/edit form (React Hook Form)
 │   ├── FormPage/              # shared create/edit page shell (title + ErrorMessage wrapper)
@@ -89,7 +90,7 @@ src/
 ├── interfaces/           # State / NewState / FrontendVersion / BackendInfo domain types
 ├── services/             # stateService + stateApiMapper (wire <-> domain), authService,
 │                            infoService
-└── router.tsx              # routes with lazy loading, wrapped in Layout
+└── proxy.ts                # Next proxy (ex-middleware): sets the CSP header
 
 scripts/
 └── generate-version.mjs  # writes public/version.json (commit + build date) on build,
@@ -117,8 +118,8 @@ scripts/
   `aria-label` on the per-row action buttons, `role="status"`/`role="alert"`
   for loading/error states.
 - Request errors (query/mutation) are handled per page via
-  `useErrorMessage`; unexpected render errors are caught by React Router's
-  `errorElement` (`RouteError`), avoiding a blank screen.
+  `useErrorMessage`; unexpected render errors are caught by the App Router's
+  `app/error.tsx` (`RouteError`), avoiding a blank screen.
 - `stateService.list` fetches the whole dataset in a single request instead
   of exposing page-size/pagination controls in the UI: the domain is closed
   at 27 items (the Brazilian states), so real pagination never triggers in
@@ -140,14 +141,19 @@ npm install
 npm run dev
 ```
 
-Vite proxies `/api` to `http://localhost:8090` (see `vite.config.ts`). Open
-`http://localhost:5173/`.
+The `/api` route handler proxies to `http://localhost:8080` by default; to
+target the local backend on 8090, create `.env.local` with
+`BACKEND_API_URL=http://localhost:8090`. Open `http://localhost:3000/`.
 
 ### Environment variables
 
-`VITE_API_URL` overrides the backend base URL used by `httpClient`
-(defaults to `/api`, proxied by Vite/Vercel as described above) — set it to
-point the app at a different backend without touching `vite.config.ts`.
+`BACKEND_API_URL` — server-side only: the backend base URL the `/api` route
+handler forwards to. Required in production (the route answers 500 if it's
+missing); defaults to `http://localhost:8080` in development. Deliberately
+**not** a `NEXT_PUBLIC_` variable: that would be inlined into the client
+bundle and make the browser call the backend directly, bypassing the proxy
+and tripping the CSP's `connect-src 'self'`. `httpClient` always uses the
+same-origin `/api`.
 
 ## Build
 
@@ -155,21 +161,21 @@ point the app at a different backend without touching `vite.config.ts`.
 npm run build
 ```
 
-Outputs the build artifacts to `dist/`.
+Outputs the production build to `.next/` (run it with `npm start`).
 
 ## Deployment
 
 Live at **[react-state-flax.vercel.app](https://react-state-flax.vercel.app/)**.
-`vercel.json` deploys the app as a static SPA and rewrites `/api/*` to the
-live backend, the same origin-proxy pattern used in development
-(`vite.config.ts`) — the browser only ever talks to the deployment's own
-origin, so it avoids CORS entirely (the backend only allows its own
-CloudFront origin). Run `npx vercel --prod` from a Vercel-linked checkout.
+Deployed on Vercel as a Next.js app (zero-config, no `vercel.json`). The
+`/api` route handler forwards to the live backend named by the
+`BACKEND_API_URL` project env var — the browser only ever talks to the
+deployment's own origin, so it avoids CORS entirely (the backend only
+allows its own CloudFront origin). Run `npx vercel --prod` from a
+Vercel-linked checkout.
 
-There's no one-click "Deploy with Vercel" button: `vercel.json` points
-`/api/*` at this project's own backend, so a clone deployed elsewhere
-would render fine but every API call would fail (that backend's CORS only
-allows its own origin).
+There's no one-click "Deploy with Vercel" button: `BACKEND_API_URL` must
+point at a backend you control, and this project's own backend only allows
+its own origin.
 
 ## Lint and formatting
 

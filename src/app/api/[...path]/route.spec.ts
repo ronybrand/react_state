@@ -112,6 +112,34 @@ describe('app/api/[...path] route (backend proxy)', () => {
     expect(options.headers['Authorization']).toBeUndefined();
   });
 
+  it('forwards X-Request-Id to the backend and back to the client', async () => {
+    fetchMock.mockResolvedValue(
+      new Response('{}', { status: 200, headers: { 'X-Request-Id': 'abc-123' } }),
+    );
+
+    const request = new NextRequest('http://localhost:3000/api/estado/1', {
+      method: 'GET',
+      headers: new Headers({ 'x-request-id': 'abc-123' }),
+    });
+    const response = await GET(request, { params: Promise.resolve({ path: ['estado', '1'] }) });
+
+    const [, options] = fetchMock.mock.calls[0] as [string, { headers: Record<string, string> }];
+    expect(options.headers['X-Request-Id']).toBe('abc-123');
+    expect(response.headers.get('X-Request-Id')).toBe('abc-123');
+  });
+
+  it('answers 500 in production when BACKEND_API_URL is not configured', async () => {
+    delete process.env['BACKEND_API_URL'];
+    vi.stubEnv('NODE_ENV', 'production');
+
+    const request = makeRequest('GET', 'http://localhost:3000/api/estado/1');
+    const response = await GET(request, { params: Promise.resolve({ path: ['estado', '1'] }) });
+
+    expect(response.status).toBe(500);
+    expect(fetchMock).not.toHaveBeenCalled();
+    vi.unstubAllEnvs();
+  });
+
   it('returns a 502 when the backend is unreachable', async () => {
     fetchMock.mockRejectedValue(new Error('ECONNREFUSED'));
 

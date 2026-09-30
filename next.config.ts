@@ -20,7 +20,8 @@ const nextConfig: NextConfig = {
   // Content-Security-Policy is NOT set here - a static `script-src 'self'`
   // (the literal port of the old CSP) blocks the App Router's own inline
   // RSC-payload scripts and breaks hydration. See src/proxy.ts, which sets
-  // a per-request nonced CSP instead (Next's documented approach).
+  // a CSP allowing 'unsafe-inline' scripts instead (the nonce approach
+  // didn't work in CI - the reasoning is documented there).
   async headers() {
     return [
       {

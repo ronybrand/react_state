@@ -10,14 +10,14 @@ vi.mock('next/link', () => ({
   ),
 }));
 
-const push = vi.fn();
+const replace = vi.fn();
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push }),
+  useRouter: () => ({ replace }),
 }));
 
 describe('Providers (app/providers.tsx)', () => {
   beforeEach(() => {
-    push.mockClear();
+    replace.mockClear();
   });
 
   it('renders its children inside the app chrome', () => {
@@ -40,6 +40,6 @@ describe('Providers (app/providers.tsx)', () => {
 
     notifySessionExpired();
 
-    expect(push).toHaveBeenCalledWith('/login');
+    expect(replace).toHaveBeenCalledWith('/login');
   });
 });
