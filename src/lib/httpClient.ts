@@ -12,10 +12,15 @@ interface RetryConfig extends AxiosRequestConfig {
   _retryCount?: number;
 }
 
-// Vite's import.meta.env.VITE_API_URL becomes Next's
-// process.env.NEXT_PUBLIC_API_URL - the only mechanical change required by
-// the bundler swap; the rest of this file ports unchanged.
-const baseURL = process.env.NEXT_PUBLIC_API_URL ?? '/api';
+// Always same-origin '/api', never a direct backend URL: this instance
+// runs in the browser, and app/api/[...path]/route.ts is a full catch-all
+// proxy specifically so the browser only ever talks to this app's own
+// origin (see that file's comment on why its backend target,
+// BACKEND_API_URL, is deliberately not a NEXT_PUBLIC_ var - the earlier
+// version of this file read NEXT_PUBLIC_API_URL directly, which broke
+// production: setting it made the browser skip the proxy and call the
+// backend directly, tripping the CSP's connect-src 'self').
+const baseURL = '/api';
 
 export const httpClient = axios.create({
   baseURL,

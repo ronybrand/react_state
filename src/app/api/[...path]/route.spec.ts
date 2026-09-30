@@ -16,17 +16,17 @@ function makeRequest(
 }
 
 describe('app/api/[...path] route (backend proxy)', () => {
-  const originalEnv = process.env['NEXT_PUBLIC_API_URL'];
+  const originalEnv = process.env['BACKEND_API_URL'];
   let fetchMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
-    process.env['NEXT_PUBLIC_API_URL'] = BACKEND_BASE_URL;
+    process.env['BACKEND_API_URL'] = BACKEND_BASE_URL;
     fetchMock = vi.fn();
     vi.stubGlobal('fetch', fetchMock);
   });
 
   afterEach(() => {
-    process.env['NEXT_PUBLIC_API_URL'] = originalEnv;
+    process.env['BACKEND_API_URL'] = originalEnv;
     vi.unstubAllGlobals();
   });
 
