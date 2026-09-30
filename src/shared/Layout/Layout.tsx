@@ -6,13 +6,16 @@ import { useRouter } from 'next/navigation';
 import { Footer } from '../Footer/Footer';
 import { Icon } from '../Icon/Icon';
 import { authService } from '../../services/authService';
-import { isTokenValid } from '../../lib/tokenStorage';
+import { useTokenValid } from '../../hooks/useTokenValid';
 
 // Vite original wrapped react-router's <Outlet/> - Next's App Router has no
 // nested-route outlet, so this now takes `children` and is rendered from
 // app/layout.tsx around {children} directly.
 export function Layout({ children }: { children: ReactNode }) {
   const router = useRouter();
+  // Hydration-safe (see useTokenValid): the logout button only appears once
+  // the client knows the token state, never in the server HTML.
+  const loggedIn = useTokenValid() === true;
 
   function handleLogout() {
     authService.logout();
@@ -25,7 +28,7 @@ export function Layout({ children }: { children: ReactNode }) {
         <Link href="/" className="font-display text-lg font-semibold text-white">
           State CRUD - React/Java
         </Link>
-        {isTokenValid() && (
+        {loggedIn && (
           <button
             type="button"
             aria-label="Sair"

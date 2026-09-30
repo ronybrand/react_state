@@ -2,14 +2,14 @@ import { render } from '@testing-library/react';
 import { SessionExpiredListener } from './SessionExpiredListener';
 import { notifySessionExpired } from '../../lib/sessionExpired';
 
-const push = vi.fn();
+const replace = vi.fn();
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push }),
+  useRouter: () => ({ replace }),
 }));
 
 describe('SessionExpiredListener', () => {
   beforeEach(() => {
-    push.mockClear();
+    replace.mockClear();
   });
 
   it('navigates to /login when the session expires', () => {
@@ -17,7 +17,7 @@ describe('SessionExpiredListener', () => {
 
     notifySessionExpired();
 
-    expect(push).toHaveBeenCalledWith('/login');
+    expect(replace).toHaveBeenCalledWith('/login');
   });
 
   it('stops navigating after being unmounted', () => {
@@ -26,7 +26,7 @@ describe('SessionExpiredListener', () => {
     unmount();
     notifySessionExpired();
 
-    expect(push).not.toHaveBeenCalled();
+    expect(replace).not.toHaveBeenCalled();
   });
 
   it('renders nothing', () => {

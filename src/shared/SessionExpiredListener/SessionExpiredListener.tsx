@@ -13,7 +13,7 @@ export function SessionExpiredListener() {
 
   useEffect(() => {
     return onSessionExpired(() => {
-      router.push('/login');
+      router.replace('/login');
     });
   }, [router]);
 
