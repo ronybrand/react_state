@@ -1,0 +1,70 @@
+name: Check dependabot ignore rules
+
+on:
+  schedule:
+    - cron: '0 6 1 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: 22
+
+      # Silent unless a rule can be relaxed: the signals always go to the job
+      # summary, but an issue is only opened (or refreshed) when the script
+      # prints an ACTIONABLE or PARTIAL line.
+      - name: Evaluate the ignore rules
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          bash scripts/check-dependabot-ignore-rules.sh | tee result.txt
+
+          {
+            echo '### Dependabot ignore rules'
+            echo '```'
+            grep -vE '^(ACTIONABLE|PARTIAL):' result.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          items=$(
+            while IFS=: read -r kind pkg highest blocked; do
+              case "$kind" in
+                ACTIONABLE)
+                  echo "- **$pkg**: the newest release is now supported. Remove its \`ignore\` rule."
+                  ;;
+                PARTIAL)
+                  echo "- **$pkg**: versions up to \`$highest\` are now supported, but the newest is not. Replace the blanket major-bump ignore with \`versions: ['>=$blocked']\`, then confirm the bump passes \`npm ci\`, \`npm run lint\` and \`npm run build\`."
+                  ;;
+              esac
+            done < <(grep -E '^(ACTIONABLE|PARTIAL):' result.txt)
+          )
+          [ -z "$items" ] && exit 0
+
+          title="Dependabot ignore rules can be relaxed"
+          body=$(cat <<EOF
+          The \`ignore\` rules in [\`dependabot.yml\`](../blob/master/.github/dependabot.yml) are tighter than they need to be: the dependency that caused each breakage now declares support for a newer major.
+
+          $items
+
+          \`\`\`
+          $(grep -vE '^(ACTIONABLE|PARTIAL):' result.txt)
+          \`\`\`
+          EOF
+          )
+
+          existing=$(gh issue list --search "$title in:title" --state open --json number --jq '.[0].number')
+          if [ -n "$existing" ]; then
+            gh issue edit "$existing" --body "$body"
+          else
+            gh issue create --title "$title" --body "$body" --label dependencies
+          fi
