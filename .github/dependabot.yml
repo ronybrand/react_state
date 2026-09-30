@@ -6,6 +6,15 @@ updates:
       interval: weekly
     open-pull-requests-limit: 10
     groups:
+      # More specific than weekly-batch below (dependabot prefers the more
+      # specific group), so vitest and @vitest/coverage-v8 always bump
+      # together - they're peer-dependency-locked to the same major, and PR
+      # #58 (a standalone, non-batched PR for just `vitest`) bumped only one
+      # of them, breaking `npm ci` with an ERESOLVE conflict.
+      vitest:
+        patterns:
+          - 'vitest'
+          - '@vitest/*'
       weekly-batch:
         patterns:
           - '*'
