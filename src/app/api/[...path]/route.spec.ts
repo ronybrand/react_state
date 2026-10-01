@@ -354,6 +354,19 @@ describe('app/api/[...path] route (backend proxy)', () => {
     });
   });
 
+  it('falls back to localhost:8080 outside production when BACKEND_API_URL is unset', async () => {
+    delete process.env['BACKEND_API_URL'];
+    fetchMock.mockResolvedValue(jsonResponse('{}', 200));
+
+    const request = makeRequest('GET', 'http://localhost:3000/api/estado/paginado');
+    await GET(request, { params: Promise.resolve({ path: ['estado', 'paginado'] }) });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'http://localhost:8080/estado/paginado',
+      expect.anything(),
+    );
+  });
+
   it('returns a 502 when the backend is unreachable', async () => {
     fetchMock.mockRejectedValue(new Error('ECONNREFUSED'));
 
