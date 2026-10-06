@@ -8,9 +8,28 @@ import { Providers } from './providers';
 // so it covers every route.
 export const dynamic = 'force-dynamic';
 
+const title = 'Brazilian States — React/Next.js Frontend';
+const description =
+  'Alternate React/Next.js frontend for a production Java/Spring Boot REST API, with a BFF route handler forwarding real visitor IPs through Vercel to preserve per-client rate limiting behind the proxy.';
+const siteUrl = 'https://react-state-flax.vercel.app/';
+
 export const metadata: Metadata = {
-  title: 'State CRUD - React/Java',
-  description: 'React + Next.js state CRUD frontend',
+  title,
+  description,
+  authors: [{ name: 'Rony Reinehr Brand' }],
+  openGraph: {
+    type: 'website',
+    title,
+    description,
+    url: siteUrl,
+    images: [{ url: '/og-image.png', width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title,
+    description,
+    images: ['/og-image.png'],
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
