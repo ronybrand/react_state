@@ -19,7 +19,7 @@ vi.mock('next/navigation', () => ({
 // (Providers -> Layout chrome -> children).
 describe('RootLayout (app/layout.tsx)', () => {
   it('sets the page title via metadata', () => {
-    expect(metadata.title).toBe('State CRUD - React/Java');
+    expect(metadata.title).toBe('Brazilian States — React/Next.js Frontend');
   });
 
   it('renders the app chrome around its children', () => {
