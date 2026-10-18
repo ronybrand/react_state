@@ -31,10 +31,22 @@ flowchart LR
         DB[("Postgres")]
     end
 
+
+    subgraph OnDemand["Turn on the API on demand"]
+        direction LR
+        Lambda["Lambda start-api\n(Function URL)"]
+        Turnstile["Cloudflare Turnstile"]
+        Autostop["EventBridge\n(autostop rule)"]
+    end
+
     Browser -- "/ (static)" --> Static
     Browser -- "/api/*" --> Rewrite
     Rewrite --> App
     App --> DB
+    Browser -. "API unreachable:\nTurn on the API" .-> Lambda
+    Lambda -. "validates the challenge" .-> Turnstile
+    Lambda -. "starts / stops" .-> EC2
+    Autostop -. "stops it 2h after" .-> Lambda
 ```
 
 The app never talks to the backend's own origin — the catch-all route
