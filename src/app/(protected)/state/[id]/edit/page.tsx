@@ -10,6 +10,7 @@ import { useStateById } from '../../../../../hooks/useStateById';
 import { useStates } from '../../../../../hooks/useStates';
 import { useUpdateState } from '../../../../../hooks/useUpdateState';
 import { extractRequestId } from '../../../../../lib/extractRequestId';
+import { apiErrorMessage } from '../../../../../lib/apiErrorMessage';
 import type { NewState } from '../../../../../interfaces/state';
 
 // Client Component, so `useParams()` from next/navigation is used instead
@@ -38,7 +39,7 @@ export default function EditState() {
       return;
     }
     if (isError) {
-      setError('Failed to fetch state.', extractRequestId(loadError));
+      setError(apiErrorMessage(loadError, 'Failed to fetch state.'), extractRequestId(loadError));
       return;
     }
     clearError();
@@ -53,7 +54,7 @@ export default function EditState() {
       {
         onSuccess: () => router.push('/'),
         onError: (err) => {
-          setError('Failed to update state.', extractRequestId(err));
+          setError(apiErrorMessage(err, 'Failed to update state.'), extractRequestId(err));
         },
       },
     );

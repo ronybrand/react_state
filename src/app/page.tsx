@@ -10,6 +10,7 @@ import { Spinner } from '../shared/Spinner/Spinner';
 import { Icon } from '../shared/Icon/Icon';
 import { ConfirmDialog, type ConfirmDialogHandle } from '../shared/ConfirmDialog/ConfirmDialog';
 import { extractRequestId } from '../lib/extractRequestId';
+import { apiErrorMessage } from '../lib/apiErrorMessage';
 import { formatDate } from '../lib/formatDate';
 
 type SortField = 'nome' | 'sigla';
@@ -40,7 +41,7 @@ export default function StateList() {
 
   useEffect(() => {
     if (isError) {
-      setError('Failed to fetch states.', extractRequestId(loadError));
+      setError(apiErrorMessage(loadError, 'Failed to fetch states.'), extractRequestId(loadError));
     }
   }, [isError, loadError, setError]);
 
@@ -91,7 +92,7 @@ export default function StateList() {
     }
     deleteState.mutate(pendingDelete.id, {
       onError: (err) => {
-        setError('Failed to delete state.', extractRequestId(err));
+        setError(apiErrorMessage(err, 'Failed to delete state.'), extractRequestId(err));
       },
     });
   }
