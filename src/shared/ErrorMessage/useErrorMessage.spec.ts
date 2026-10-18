@@ -1,4 +1,5 @@
 import { act, renderHook } from '@testing-library/react';
+import { API_UNAVAILABLE_MESSAGE } from '../../lib/apiErrorMessage';
 import { useErrorMessage } from './useErrorMessage';
 
 describe('useErrorMessage', () => {
@@ -47,6 +48,17 @@ describe('useErrorMessage', () => {
     expect(result.current.error).toBe('Second error.');
 
     act(() => vi.advanceTimersByTime(2000));
+    expect(result.current.error).toBeNull();
+  });
+
+  it('keeps the API-unavailable message well past the default 5s', () => {
+    const { result } = renderHook(() => useErrorMessage());
+
+    act(() => result.current.setError(API_UNAVAILABLE_MESSAGE));
+    act(() => vi.advanceTimersByTime(59999));
+    expect(result.current.error).toBe(API_UNAVAILABLE_MESSAGE);
+
+    act(() => vi.advanceTimersByTime(1));
     expect(result.current.error).toBeNull();
   });
 });
