@@ -7,6 +7,7 @@ import { FormPage } from '../../shared/FormPage/FormPage';
 import { useErrorMessage } from '../../shared/ErrorMessage/useErrorMessage';
 import { useLogin } from '../../hooks/useLogin';
 import { extractRequestId } from '../../lib/extractRequestId';
+import { apiErrorMessage } from '../../lib/apiErrorMessage';
 import type { LoginCredentials } from '../../services/authService';
 
 const inputClass =
@@ -39,7 +40,7 @@ export default function Login() {
       onSuccess: () => router.push('/'),
       onError: (err) => {
         submitInFlight.current = false;
-        setError('Invalid username or password.', extractRequestId(err));
+        setError(apiErrorMessage(err, 'Invalid username or password.'), extractRequestId(err));
       },
     });
   }

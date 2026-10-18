@@ -7,6 +7,7 @@ import { useErrorMessage } from '../../../../shared/ErrorMessage/useErrorMessage
 import { useCreateState } from '../../../../hooks/useCreateState';
 import { useStates } from '../../../../hooks/useStates';
 import { extractRequestId } from '../../../../lib/extractRequestId';
+import { apiErrorMessage } from '../../../../lib/apiErrorMessage';
 import type { NewState } from '../../../../interfaces/state';
 
 export default function CreateState() {
@@ -19,7 +20,7 @@ export default function CreateState() {
     createState.mutate(state, {
       onSuccess: () => router.push('/'),
       onError: (err) => {
-        setError('Failed to create state.', extractRequestId(err));
+        setError(apiErrorMessage(err, 'Failed to create state.'), extractRequestId(err));
       },
     });
   }
