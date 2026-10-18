@@ -21,7 +21,7 @@ export function ErrorMessage({ error, requestId }: ErrorMessageProps) {
       {error}
       {error === API_UNAVAILABLE_MESSAGE && (
         <a
-          href={startApiUrl(typeof window === 'undefined' ? undefined : window.location.href)}
+          href={startApiUrl(window.location.href)}
           target="_blank"
           rel="noopener noreferrer"
           className="mt-2 block underline"
