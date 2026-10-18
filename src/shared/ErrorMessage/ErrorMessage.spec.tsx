@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import { API_UNAVAILABLE_MESSAGE, START_API_URL } from '../../lib/apiErrorMessage';
+import { API_UNAVAILABLE_MESSAGE, startApiUrl } from '../../lib/apiErrorMessage';
 import { ErrorMessage } from './ErrorMessage';
 
 describe('ErrorMessage', () => {
@@ -33,7 +33,10 @@ describe('ErrorMessage', () => {
     const { rerender } = render(<ErrorMessage error={API_UNAVAILABLE_MESSAGE} requestId={null} />);
 
     const link = screen.getByRole('link', { name: 'Turn on the API' });
-    expect(link).toHaveAttribute('href', START_API_URL);
+    expect(link).toHaveAttribute('href', startApiUrl(window.location.href));
+    expect(link.getAttribute('href')).toContain(
+      'lang=en&back=' + encodeURIComponent(window.location.href),
+    );
     expect(link).toHaveAttribute('rel', 'noopener noreferrer');
 
     rerender(<ErrorMessage error="Failed to fetch states." requestId={null} />);
