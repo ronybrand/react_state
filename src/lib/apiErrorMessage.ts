@@ -5,10 +5,21 @@ import { isAxiosError } from 'axios';
 export const START_API_URL =
   'https://pizowbnhivr3vholalz5r7ajta0mkvqn.lambda-url.us-east-1.on.aws/';
 
+// ?back: the page returns to the exact URL the user came from, but only if its
+// origin is on the page's own allow-list (no open redirect). ?lang=en: this app
+// is English-only.
+export function startApiUrl(currentUrl?: string): string {
+  const params = new URLSearchParams({ lang: 'en' });
+  if (currentUrl) {
+    params.set('back', currentUrl);
+  }
+  return `${START_API_URL}?${params.toString()}`;
+}
+
 export const API_UNAVAILABLE_MESSAGE =
   'The API is temporarily offline (paused to save cost). Please try again in a few minutes.';
 
-const GATEWAY_STATUSES = [502, 503, 504];
+const GATEWAY_STATUSES = new Set([502, 503, 504]);
 
 // No usable backend answer: no response at all (network, or axios' own
 // timeout) or the BFF proxy's 502/504 when it can't reach the backend (see
@@ -18,7 +29,7 @@ export function isApiUnavailable(error: unknown): boolean {
   if (!isAxiosError(error)) {
     return false;
   }
-  return !error.response || GATEWAY_STATUSES.includes(error.response.status);
+  return !error.response || GATEWAY_STATUSES.has(error.response.status);
 }
 
 export function apiErrorMessage(error: unknown, fallback: string): string {

@@ -1,6 +1,6 @@
 'use client';
 
-import { API_UNAVAILABLE_MESSAGE, START_API_URL } from '../../lib/apiErrorMessage';
+import { API_UNAVAILABLE_MESSAGE, startApiUrl } from '../../lib/apiErrorMessage';
 
 interface ErrorMessageProps {
   error: string | null;
@@ -21,7 +21,7 @@ export function ErrorMessage({ error, requestId }: ErrorMessageProps) {
       {error}
       {error === API_UNAVAILABLE_MESSAGE && (
         <a
-          href={START_API_URL}
+          href={startApiUrl(typeof window === 'undefined' ? undefined : window.location.href)}
           target="_blank"
           rel="noopener noreferrer"
           className="mt-2 block underline"
