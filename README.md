@@ -128,6 +128,14 @@ scripts/
   still consumes that contract, it just doesn't surface paging in the UI
   for a dataset that always fits on one page.
 
+### When the API is turned off
+
+To save cost, the backend instance is stopped while the project isn't in use. When the API doesn't
+answer (no response, timeout or 502/503/504), the error message says so and offers a **Turn on the
+API** link. It opens a page served by the backend's `start-api` Lambda (anti-bot challenge, starts the
+instance, waits for the API to come back; the instance stops by itself after 2 hours), see
+[ADR 0026](https://github.com/ronybrand/estado/blob/master/docs/adr/0026-ligar-api-sob-demanda.md). Implemented in `src/lib/apiErrorMessage.ts`.
+
 ## Prerequisites
 
 Requires a State API backend running locally at `http://localhost:8090` —
