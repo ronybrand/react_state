@@ -17,7 +17,7 @@ export function startApiUrl(currentUrl?: string): string {
 }
 
 export const API_UNAVAILABLE_MESSAGE =
-  'The API is temporarily offline (paused to save cost). Please try again in a few minutes.';
+  'The API is offline (paused to save cost). Turn it on with the link below; it takes about 1 minute.';
 
 const GATEWAY_STATUSES = new Set([502, 503, 504]);
 
