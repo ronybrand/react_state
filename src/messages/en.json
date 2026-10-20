@@ -56,5 +56,16 @@
   "backendVersion": "back",
   "somethingWentWrong": "Something went wrong",
   "unexpectedError": "An unexpected error occurred while loading this page. Try going back to the home page.",
-  "backToHome": "Back to home"
+  "backToHome": "Back to home",
+  "askAiLink": "Ask AI",
+  "askAiTitle": "Ask about the Brazilian states",
+  "askAiDescription": "Ask an AI assistant about Brazilian states using live data from the Estado API.",
+  "askAiQuestionLabel": "Your question",
+  "askAiPlaceholder": "E.g.: How many states are in the Southeast region?",
+  "askAiButton": "Ask",
+  "askAiPendingButton": "Asking...",
+  "askAiError": "Failed to reach the assistant. Please try again shortly.",
+  "askAiLanguageNote": "The assistant only understands questions in Portuguese or English.",
+  "askAiHowItWorks": "An AI agent (Spring AI + Gemini) queries the live backend API; answers are generated from current data.",
+  "askAiSourceLink": "View the AI agent source on GitHub"
 }

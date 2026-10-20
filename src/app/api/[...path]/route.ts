@@ -22,11 +22,11 @@ const REQUEST_ID_HEADER = 'X-Request-Id';
 const CLIENT_IP_HEADER = 'X-Client-IP';
 const PROXY_SECRET_HEADER = 'X-Proxy-Secret';
 
-// Shorter than httpClient's 15s timeout on purpose: the proxy has to give up
-// first so the client gets a clean 504 it can retry (GET), instead of its own
-// timeout firing while this function is still hanging - and billing - on a
-// stalled backend.
-export const BACKEND_TIMEOUT_MS = 10_000;
+// The backend allows up to 45s for the AI agent. Keep the BFF timeout above
+// that and below the route's platform execution limit so the backend can
+// return its own structured error first.
+export const BACKEND_TIMEOUT_MS = 50_000;
+export const maxDuration = 60;
 
 // Only what the app actually calls (see src/services/*). This route is a
 // public pass-through to the backend, so anything not listed - actuator
@@ -34,7 +34,7 @@ export const BACKEND_TIMEOUT_MS = 10_000;
 // it even if the backend itself would answer. The regex also rejects any
 // '.'/'..' segment, so a `..%2f` in the URL (decoded to '/' by Next) can't
 // climb out of BACKEND_API_URL's own path prefix.
-const ALLOWED_PATH = /^(estado\/?|estado\/paginado|estado\/\d+|auth\/login|actuator\/info)$/;
+const ALLOWED_PATH = /^(estado\/?|estado\/paginado|estado\/\d+|auth\/login|actuator\/info|ask)$/;
 
 // The backend speaks JSON only. Passing through any other Content-Type
 // would let it (or anything reflected by it) serve HTML/script from this

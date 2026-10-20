@@ -56,5 +56,16 @@
   "backendVersion": "back",
   "somethingWentWrong": "Algo deu errado",
   "unexpectedError": "Ocorreu um erro inesperado ao carregar esta página. Tente voltar para a página inicial.",
-  "backToHome": "Voltar para o início"
+  "backToHome": "Voltar para o início",
+  "askAiLink": "Pergunte à IA",
+  "askAiTitle": "Pergunte sobre os estados brasileiros",
+  "askAiDescription": "Pergunte a um assistente de IA sobre os estados brasileiros usando dados atuais da API Estado.",
+  "askAiQuestionLabel": "Sua pergunta",
+  "askAiPlaceholder": "Ex.: Quantos estados existem na região Sudeste?",
+  "askAiButton": "Perguntar",
+  "askAiPendingButton": "Perguntando...",
+  "askAiError": "Falha ao consultar o assistente. Tente novamente em instantes.",
+  "askAiLanguageNote": "O assistente entende perguntas apenas em português ou inglês.",
+  "askAiHowItWorks": "Um agente de IA (Spring AI + Gemini) consulta a API real do backend; as respostas usam dados atuais.",
+  "askAiSourceLink": "Ver código do agente de IA no GitHub"
 }
