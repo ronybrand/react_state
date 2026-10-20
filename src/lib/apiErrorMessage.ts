@@ -6,10 +6,9 @@ export const START_API_URL =
   'https://pizowbnhivr3vholalz5r7ajta0mkvqn.lambda-url.us-east-1.on.aws/';
 
 // ?back: the page returns to the exact URL the user came from, but only if its
-// origin is on the page's own allow-list (no open redirect). ?lang=en: this app
-// is English-only.
-export function startApiUrl(currentUrl?: string): string {
-  const params = new URLSearchParams({ lang: 'en' });
+// origin is on the page's own allow-list (no open redirect).
+export function startApiUrl(currentUrl?: string, lang: 'pt' | 'en' = 'en'): string {
+  const params = new URLSearchParams({ lang });
   if (currentUrl) {
     params.set('back', currentUrl);
   }

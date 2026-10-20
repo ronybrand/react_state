@@ -9,11 +9,13 @@ import { useLogin } from '../../hooks/useLogin';
 import { extractRequestId } from '../../lib/extractRequestId';
 import { apiErrorMessage } from '../../lib/apiErrorMessage';
 import type { LoginCredentials } from '../../services/authService';
+import { useTranslation } from '../../i18n/TranslationProvider';
 
 const inputClass =
   'col-span-12 rounded border px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand aria-invalid:border-danger';
 
 export default function Login() {
+  const { t } = useTranslation();
   const router = useRouter();
   const login = useLogin();
   const { error, requestId, setError } = useErrorMessage();
@@ -40,13 +42,13 @@ export default function Login() {
       onSuccess: () => router.push('/'),
       onError: (err) => {
         submitInFlight.current = false;
-        setError(apiErrorMessage(err, 'Invalid username or password.'), extractRequestId(err));
+        setError(apiErrorMessage(err, t('invalidCredentialsError')), extractRequestId(err));
       },
     });
   }
 
   return (
-    <FormPage title="Login" error={error} requestId={requestId}>
+    <FormPage title={t('loginTitle')} error={error} requestId={requestId}>
       {
         // react-hook-form's handleSubmit(fn) returns a submit handler that
         // reads its internal form-state ref when invoked - not during
@@ -61,7 +63,7 @@ export default function Login() {
       <form onSubmit={handleSubmit(handleLogin)} className="space-y-4">
         <div>
           <label htmlFor="username" className="mb-1 block text-sm font-medium text-gray-700">
-            Username
+            {t('userLabel')}
           </label>
           <input
             id="username"
@@ -73,7 +75,7 @@ export default function Login() {
 
         <div>
           <label htmlFor="password" className="mb-1 block text-sm font-medium text-gray-700">
-            Password
+            {t('passwordLabel')}
           </label>
           <input
             id="password"
@@ -90,13 +92,12 @@ export default function Login() {
             disabled={!isValid || login.isPending}
             className="bg-brand hover:bg-brand-dark inline-flex cursor-pointer items-center gap-1 rounded px-4 py-1.5 text-white disabled:cursor-default disabled:opacity-50"
           >
-            Log in
+            {t('enterButton')}
           </button>
         </div>
       </form>
       <p className="mt-4 text-sm text-gray-600" data-testid="demo-credentials">
-        Demo credentials (intentionally public): <strong>admin</strong> /{' '}
-        <strong>Estado-Demo-2026</strong>
+        {t('demoCredentialsNote')} <strong>admin</strong> / <strong>Estado-Demo-2026</strong>
       </p>
     </FormPage>
   );

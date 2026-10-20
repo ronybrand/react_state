@@ -1,6 +1,7 @@
 'use client';
 
 import { API_UNAVAILABLE_MESSAGE, startApiUrl } from '../../lib/apiErrorMessage';
+import { translateKnownError, useTranslation } from '../../i18n/TranslationProvider';
 
 interface ErrorMessageProps {
   error: string | null;
@@ -8,9 +9,13 @@ interface ErrorMessageProps {
 }
 
 export function ErrorMessage({ error, requestId }: ErrorMessageProps) {
+  const { lang, t } = useTranslation();
   if (!error) {
     return null;
   }
+
+  const message =
+    error === API_UNAVAILABLE_MESSAGE ? t('apiUnavailableMessage') : translateKnownError(error, t);
 
   return (
     <div
@@ -18,18 +23,20 @@ export function ErrorMessage({ error, requestId }: ErrorMessageProps) {
       aria-live="assertive"
       className="border-danger bg-danger/10 text-danger mb-4 rounded border px-4 py-3"
     >
-      {error}
+      {message}
       {error === API_UNAVAILABLE_MESSAGE && (
         <a
-          href={startApiUrl(window.location.href)}
+          href={startApiUrl(window.location.href, lang)}
           target="_blank"
           rel="noopener noreferrer"
           className="mt-2 block underline"
         >
-          Turn on the API
+          {t('startApiLink')}
         </a>
       )}
-      {requestId && <small className="mt-1 block text-gray-500">Reference ID: {requestId}</small>}
+      {requestId && (
+        <small className="mt-1 block text-gray-500">{t('referenceId', { id: requestId })}</small>
+      )}
     </div>
   );
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import { forwardRef, useImperativeHandle, useRef } from 'react';
+import { useTranslation } from '../../i18n/TranslationProvider';
 
 export interface ConfirmDialogHandle {
   open(): void;
@@ -17,6 +18,7 @@ interface ConfirmDialogProps {
 // event, implicit role) without needing a modal library just for this.
 export const ConfirmDialog = forwardRef<ConfirmDialogHandle, ConfirmDialogProps>(
   function ConfirmDialog({ message, onConfirm, onCancel }, ref) {
+    const { t } = useTranslation();
     const dialogRef = useRef<HTMLDialogElement>(null);
 
     useImperativeHandle(ref, () => ({
@@ -47,14 +49,14 @@ export const ConfirmDialog = forwardRef<ConfirmDialogHandle, ConfirmDialogProps>
             onClick={handleCancel}
             className="mr-1 rounded bg-gray-100 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-200"
           >
-            Cancel
+            {t('cancelButton')}
           </button>
           <button
             type="button"
             onClick={handleConfirm}
             className="bg-danger rounded px-3 py-1.5 text-sm text-white hover:opacity-90"
           >
-            Confirm
+            {t('confirmButton')}
           </button>
         </div>
       </dialog>

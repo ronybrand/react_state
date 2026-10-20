@@ -1,6 +1,12 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { StateForm } from './StateForm';
+import { TranslationProvider, useTranslation } from '../../i18n/TranslationProvider';
+
+function LanguageToggle() {
+  const { lang, setLang } = useTranslation();
+  return <button onClick={() => setLang(lang === 'en' ? 'pt' : 'en')}>Toggle language</button>;
+}
 
 describe('StateForm', () => {
   it('keeps the save button disabled while the form is invalid', () => {
@@ -198,5 +204,26 @@ describe('StateForm', () => {
       { abbreviation: 'RJ', name: 'Rio de Janeiro' },
       expect.anything(),
     );
+  });
+
+  it('translates existing validation errors when the language changes', async () => {
+    localStorage.removeItem('app_lang');
+    const user = userEvent.setup();
+
+    render(
+      <TranslationProvider>
+        <LanguageToggle />
+        <StateForm onSubmitState={vi.fn()} />
+      </TranslationProvider>,
+    );
+
+    const abbreviation = screen.getByLabelText('Abbreviation');
+    await user.click(abbreviation);
+    await user.tab();
+    expect(screen.getByText('Enter the state abbreviation with 2 letters.')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Toggle language' }));
+
+    expect(screen.getByText('Digite a sigla do estado com 2 letras.')).toBeInTheDocument();
   });
 });

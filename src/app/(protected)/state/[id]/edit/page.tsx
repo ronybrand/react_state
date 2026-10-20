@@ -12,11 +12,13 @@ import { useUpdateState } from '../../../../../hooks/useUpdateState';
 import { extractRequestId } from '../../../../../lib/extractRequestId';
 import { apiErrorMessage } from '../../../../../lib/apiErrorMessage';
 import type { NewState } from '../../../../../interfaces/state';
+import { useTranslation } from '../../../../../i18n/TranslationProvider';
 
 // Client Component, so `useParams()` from next/navigation is used instead
 // of the route's `params` prop (which in Next 15+ App Router is a Promise
 // meant for Server Components).
 export default function EditState() {
+  const { t } = useTranslation();
   const params = useParams<{ id: string }>();
   const id = params.id;
   const router = useRouter();
@@ -35,15 +37,15 @@ export default function EditState() {
 
   useEffect(() => {
     if (!validId) {
-      setError('Invalid state.');
+      setError(t('invalidState'));
       return;
     }
     if (isError) {
-      setError(apiErrorMessage(loadError, 'Failed to fetch state.'), extractRequestId(loadError));
+      setError(apiErrorMessage(loadError, t('loadStateError')), extractRequestId(loadError));
       return;
     }
     clearError();
-  }, [validId, isError, loadError, setError, clearError]);
+  }, [validId, isError, loadError, setError, clearError, t]);
 
   function handleSubmitState(data: NewState) {
     if (!state) {
@@ -54,14 +56,14 @@ export default function EditState() {
       {
         onSuccess: () => router.push('/'),
         onError: (err) => {
-          setError(apiErrorMessage(err, 'Failed to update state.'), extractRequestId(err));
+          setError(apiErrorMessage(err, t('updateStateError')), extractRequestId(err));
         },
       },
     );
   }
 
   return (
-    <FormPage title="Edit state" error={error} requestId={requestId}>
+    <FormPage title={t('editTitle')} error={error} requestId={requestId}>
       {validId && isLoading && <Spinner />}
       {state && (
         <StateForm
