@@ -1,18 +1,18 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import Link from 'next/link';
-import { useStates } from '../hooks/useStates';
-import { useDeleteState } from '../hooks/useDeleteState';
-import { useErrorMessage } from '../shared/ErrorMessage/useErrorMessage';
-import { ErrorMessage } from '../shared/ErrorMessage/ErrorMessage';
-import { Spinner } from '../shared/Spinner/Spinner';
-import { Icon } from '../shared/Icon/Icon';
-import { ConfirmDialog, type ConfirmDialogHandle } from '../shared/ConfirmDialog/ConfirmDialog';
-import { extractRequestId } from '../lib/extractRequestId';
-import { apiErrorMessage } from '../lib/apiErrorMessage';
-import { formatDate } from '../lib/formatDate';
-import { useTranslation } from '../i18n/TranslationProvider';
+import { useLocale, useTranslations } from 'next-intl';
+import { Link } from '@/i18n/navigation';
+import { useStates } from '@/hooks/useStates';
+import { useDeleteState } from '@/hooks/useDeleteState';
+import { useErrorMessage } from '@/shared/ErrorMessage/useErrorMessage';
+import { ErrorMessage } from '@/shared/ErrorMessage/ErrorMessage';
+import { Spinner } from '@/shared/Spinner/Spinner';
+import { Icon } from '@/shared/Icon/Icon';
+import { ConfirmDialog, type ConfirmDialogHandle } from '@/shared/ConfirmDialog/ConfirmDialog';
+import { extractRequestId } from '@/lib/extractRequestId';
+import { apiErrorMessage } from '@/lib/apiErrorMessage';
+import { formatDate } from '@/lib/formatDate';
 
 type SortField = 'nome' | 'sigla';
 type SortDirection = 'asc' | 'desc';
@@ -20,7 +20,8 @@ type SortDirection = 'asc' | 'desc';
 const DEBOUNCE_MS = 300;
 
 export default function StateList() {
-  const { lang, t } = useTranslation();
+  const lang = useLocale();
+  const t = useTranslations();
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [sortField, setSortField] = useState<SortField | null>(null);

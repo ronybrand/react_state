@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '../../i18n/navigation';
 import { onSessionExpired } from '../../lib/sessionExpired';
 
 // Mounted once near the app's root (see providers.tsx). httpClient's 401

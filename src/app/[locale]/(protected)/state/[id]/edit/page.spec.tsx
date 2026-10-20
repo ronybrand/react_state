@@ -1,11 +1,11 @@
 import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import EditState from './page';
-import { stateService } from '../../../../../services/stateService';
-import { createQueryClient, renderWithProviders } from '../../../../../testUtils';
-import type { State } from '../../../../../interfaces/state';
+import { stateService } from '@/services/stateService';
+import { createQueryClient, renderWithProviders } from '@/testUtils';
+import type { State } from '@/interfaces/state';
 
-vi.mock('../../../../../services/stateService', () => ({
+vi.mock('@/services/stateService', () => ({
   stateService: {
     get: vi.fn(),
     update: vi.fn(),
@@ -23,6 +23,8 @@ const mockUseParams = vi.hoisted(() => vi.fn(() => ({ id: '1' })));
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: mockPush }),
   useParams: mockUseParams,
+  redirect: vi.fn(),
+  permanentRedirect: vi.fn(),
 }));
 
 const state: State = {
@@ -98,7 +100,7 @@ describe('EditState', () => {
         expect.anything(),
       ),
     );
-    expect(mockPush).toHaveBeenCalledWith('/');
+    expect(mockPush).toHaveBeenCalledWith('/en');
   });
 
   it('shows an error message when updating fails', async () => {

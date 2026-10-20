@@ -19,6 +19,6 @@ describe('GlobalError (app/global-error.tsx)', () => {
 
     expect(html).toMatch(/^<html lang="en"/);
     expect(html).toContain('Something went wrong');
-    expect(html).toContain('href="/"');
+    expect(html).toContain('href="/en"');
   });
 });

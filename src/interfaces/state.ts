@@ -1,5 +1,23 @@
 import { z } from 'zod';
-import type { Translate } from '../i18n/TranslationProvider';
+
+export type StateValidationMessageKey =
+  | 'abbreviationLengthError'
+  | 'abbreviationFormatError'
+  | 'abbreviationDuplicateError'
+  | 'nameMinError'
+  | 'nameMaxError';
+
+const stateValidationMessageKeys: ReadonlySet<string> = new Set([
+  'abbreviationLengthError',
+  'abbreviationFormatError',
+  'abbreviationDuplicateError',
+  'nameMinError',
+  'nameMaxError',
+]);
+
+export function isStateValidationMessageKey(message: string): message is StateValidationMessageKey {
+  return stateValidationMessageKeys.has(message);
+}
 
 export interface State {
   id: number;
@@ -12,32 +30,19 @@ export interface State {
 export function createNewStateSchema(
   existingAbbreviations: string[] = [],
   currentAbbreviation?: string,
-  translate?: Translate,
 ) {
   return z.object({
     abbreviation: z
       .string()
       .trim()
       .toUpperCase()
-      .length(
-        2,
-        translate?.('abbreviationLengthError') ?? 'Enter the state abbreviation with 2 letters.',
-      )
-      .regex(
-        /^[A-Z]{2}$/,
-        translate?.('abbreviationFormatError') ??
-          'Enter the state abbreviation with 2 uppercase letters.',
-      )
+      .length(2, 'abbreviationLengthError')
+      .regex(/^[A-Z]{2}$/, 'abbreviationFormatError')
       .refine(
         (value) => value === currentAbbreviation || !existingAbbreviations.includes(value),
-        translate?.('abbreviationDuplicateError') ??
-          'A state with this abbreviation already exists.',
+        'abbreviationDuplicateError',
       ),
-    name: z
-      .string()
-      .trim()
-      .min(3, translate?.('nameMinError') ?? 'Enter the state name with at least 3 characters.')
-      .max(100, translate?.('nameMaxError') ?? 'Enter the state name with at most 100 characters.'),
+    name: z.string().trim().min(3, 'nameMinError').max(100, 'nameMaxError'),
   });
 }
 

@@ -2,9 +2,9 @@ import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { AxiosError, AxiosHeaders } from 'axios';
 import StateList from './page';
-import { stateService } from '../services/stateService';
-import { renderWithProviders } from '../testUtils';
-import type { State } from '../interfaces/state';
+import { stateService } from '@/services/stateService';
+import { renderWithProviders } from '@/testUtils';
+import type { State } from '@/interfaces/state';
 
 // next/link requires an App Router context that isn't mounted under plain
 // Testing Library render() - mocked as a plain <a> (component defined
@@ -17,7 +17,7 @@ vi.mock('next/link', () => ({
   ),
 }));
 
-vi.mock('../services/stateService', () => ({
+vi.mock('@/services/stateService', () => ({
   stateService: {
     list: vi.fn(),
     delete: vi.fn(),

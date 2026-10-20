@@ -1,31 +1,28 @@
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { askService } from '../../services/askService';
-import { TranslationProvider } from '../../i18n/TranslationProvider';
+import { NextIntlClientProvider } from 'next-intl';
+import { askService } from '../../../services/askService';
+import enMessages from '../../../messages/en.json';
+import ptMessages from '../../../messages/pt.json';
 import { AskAiForm } from './AskAiForm';
 
-vi.mock('../../services/askService', () => ({
+vi.mock('../../../services/askService', () => ({
   askService: { ask: vi.fn() },
 }));
 
 const mockAsk = vi.mocked(askService.ask);
 
-function renderForm(lang: 'en' | 'pt' = 'en') {
-  localStorage.setItem('app_lang', lang);
+function renderForm(locale: 'en' | 'pt' = 'en') {
   return render(
-    <TranslationProvider>
+    <NextIntlClientProvider locale={locale} messages={locale === 'pt' ? ptMessages : enMessages}>
       <AskAiForm />
-    </TranslationProvider>,
+    </NextIntlClientProvider>,
   );
 }
 
 describe('AskAiForm', () => {
   beforeEach(() => {
     mockAsk.mockReset();
-  });
-
-  afterEach(() => {
-    localStorage.removeItem('app_lang');
   });
 
   it('submits a trimmed question and safely renders GFM Markdown', async () => {

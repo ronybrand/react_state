@@ -1,6 +1,8 @@
 import type { ReactElement, ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { NextIntlClientProvider } from 'next-intl';
 import { render } from '@testing-library/react';
+import enMessages from './messages/en.json';
 
 export function createQueryClient() {
   return new QueryClient({
@@ -23,7 +25,11 @@ export function renderWithProviders(
   { queryClient = createQueryClient() }: { queryClient?: QueryClient } = {},
 ) {
   function Wrapper({ children }: { children: ReactNode }) {
-    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+    return (
+      <NextIntlClientProvider locale="en" messages={enMessages}>
+        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      </NextIntlClientProvider>
+    );
   }
 
   return render(ui, { wrapper: Wrapper });

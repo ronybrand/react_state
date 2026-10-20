@@ -42,7 +42,7 @@ flowchart LR
         Autostop["EventBridge\n(autostop rule)"]
     end
 
-    Browser -- "/ (static)" --> Static
+    Browser -- "/[locale] (SSR)" --> Static
     Browser -- "/api/*" --> Rewrite
     Rewrite --> App
     App --> DB
@@ -82,6 +82,7 @@ Demo credentials (intentionally public): see the backend's
 ## Stack
 
 - [React 19](https://react.dev/) + TypeScript (strict) + [Next.js](https://nextjs.org/) (App Router)
+- [next-intl](https://next-intl.dev/) for locale-prefixed routing (`/en`, `/pt`), localized UI and metadata
 - [TanStack Query](https://tanstack.com/query) for data-fetching, caching, and invalidation
 - [Axios](https://axios-http.com/) with request-id and timeout/retry interceptors
 - [react-markdown](https://github.com/remarkjs/react-markdown) +
@@ -96,6 +97,8 @@ Demo credentials (intentionally public): see the backend's
 ```
 src/
 ├── app/                 # App Router: pages, layouts, Ask AI UI, /api proxy route, error.tsx
+├── i18n/                # next-intl routing, locale-aware navigation and request config
+├── messages/            # English and Brazilian Portuguese message catalogs
 ├── shared/
 │   ├── Layout/             # app shell: title bar + children + Footer
 │   ├── Footer/              # FE/BE build info, hides silently on failure
@@ -123,6 +126,12 @@ scripts/
 ### Conventions
 
 - Function components + hooks, no classes.
+- Locale is explicit in the URL (`/en/...` or `/pt/...`); the locale switcher
+  preserves the current page, and the `/api/*` BFF routes remain locale-neutral.
+  Add a language by updating `i18n/routing.ts` and supplying a matching
+  `messages/<locale>.json` catalog. Validation and API fallback messages are
+  translated at their call sites rather than inferred from display text.
+- Ask AI requests use the locale in the URL and pass it to the same-origin BFF.
 - Data cache via TanStack Query (`hooks/`) instead of manual per-page
   fetching — every mutation invalidates the affected query, keeping the
   list in sync across navigations.

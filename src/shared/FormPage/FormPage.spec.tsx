@@ -1,9 +1,10 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { FormPage } from './FormPage';
+import { renderWithProviders } from '../../testUtils';
 
 describe('FormPage', () => {
   it('renders the title, error message and children', () => {
-    render(
+    renderWithProviders(
       <FormPage title="New state" error="Failed to create state." requestId="req-1">
         <p>form goes here</p>
       </FormPage>,
@@ -15,7 +16,7 @@ describe('FormPage', () => {
   });
 
   it('renders no error message when there is none', () => {
-    render(
+    renderWithProviders(
       <FormPage title="New state" error={null} requestId={null}>
         <p>form goes here</p>
       </FormPage>,

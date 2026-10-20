@@ -1,17 +1,32 @@
 import { render, screen } from '@testing-library/react';
+import { NextIntlClientProvider } from 'next-intl';
 import { API_UNAVAILABLE_MESSAGE, startApiUrl } from '../../lib/apiErrorMessage';
 import { ErrorMessage } from './ErrorMessage';
-import { TranslationProvider } from '../../i18n/TranslationProvider';
+import enMessages from '../../messages/en.json';
+import ptMessages from '../../messages/pt.json';
+
+function errorMessage(
+  message: string | null,
+  requestId: string | null,
+  locale: 'en' | 'pt' = 'en',
+) {
+  const messages = locale === 'pt' ? ptMessages : enMessages;
+  return (
+    <NextIntlClientProvider locale={locale} messages={messages}>
+      <ErrorMessage error={message} requestId={requestId} />
+    </NextIntlClientProvider>
+  );
+}
 
 describe('ErrorMessage', () => {
   it('renders nothing when there is no error', () => {
-    const { container } = render(<ErrorMessage error={null} requestId={null} />);
+    const { container } = render(errorMessage(null, null));
 
     expect(container).toBeEmptyDOMElement();
   });
 
   it('renders the message in role="alert" with aria-live assertive', () => {
-    render(<ErrorMessage error="Failed to fetch states." requestId={null} />);
+    render(errorMessage('Failed to fetch states.', null));
 
     const alert = screen.getByRole('alert');
     expect(alert).toHaveTextContent('Failed to fetch states.');
@@ -19,19 +34,19 @@ describe('ErrorMessage', () => {
   });
 
   it('shows the reference ID when provided', () => {
-    render(<ErrorMessage error="Failed to fetch states." requestId="abc-123" />);
+    render(errorMessage('Failed to fetch states.', 'abc-123'));
 
     expect(screen.getByText(/Reference ID: abc-123/)).toBeInTheDocument();
   });
 
   it('does not show a reference ID when absent', () => {
-    render(<ErrorMessage error="Failed to fetch states." requestId={null} />);
+    render(errorMessage('Failed to fetch states.', null));
 
     expect(screen.queryByText(/Reference ID/)).not.toBeInTheDocument();
   });
 
   it('offers the turn-on link only when the API is unavailable', () => {
-    const { rerender } = render(<ErrorMessage error={API_UNAVAILABLE_MESSAGE} requestId={null} />);
+    const { rerender } = render(errorMessage(API_UNAVAILABLE_MESSAGE, null));
 
     const link = screen.getByRole('link', { name: 'Turn on the API' });
     expect(link).toHaveAttribute('href', startApiUrl(window.location.href));
@@ -40,34 +55,15 @@ describe('ErrorMessage', () => {
     );
     expect(link).toHaveAttribute('rel', 'noopener noreferrer');
 
-    rerender(<ErrorMessage error="Failed to fetch states." requestId={null} />);
+    rerender(errorMessage('Failed to fetch states.', null));
 
     expect(screen.queryByRole('link')).not.toBeInTheDocument();
   });
 
-  it('translates known errors and the API link using the selected language', async () => {
-    localStorage.setItem('app_lang', 'pt');
+  it('localizes the API startup message and link using the route locale', () => {
+    render(errorMessage(API_UNAVAILABLE_MESSAGE, null, 'pt'));
 
-    render(
-      <TranslationProvider>
-        <ErrorMessage error="Failed to fetch states." requestId="abc-123" />
-      </TranslationProvider>,
-    );
-
-    expect(await screen.findByRole('alert')).toHaveTextContent('Falha ao buscar estados.');
-    expect(screen.getByText('ID de referência: abc-123')).toBeInTheDocument();
-  });
-
-  it('opens the API startup page in the selected language', async () => {
-    localStorage.setItem('app_lang', 'pt');
-
-    render(
-      <TranslationProvider>
-        <ErrorMessage error={API_UNAVAILABLE_MESSAGE} requestId={null} />
-      </TranslationProvider>,
-    );
-
-    const link = await screen.findByRole('link', { name: 'Ativar a API' });
+    const link = screen.getByRole('link', { name: 'Ativar a API' });
     expect(link).toHaveAttribute('href', startApiUrl(window.location.href, 'pt'));
     expect(link).toHaveTextContent('Ativar a API');
   });

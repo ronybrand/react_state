@@ -1,11 +1,31 @@
-import { render, screen } from '@testing-library/react';
+import { useState, type ReactElement } from 'react';
+import { NextIntlClientProvider } from 'next-intl';
+import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { StateForm } from './StateForm';
-import { TranslationProvider, useTranslation } from '../../i18n/TranslationProvider';
+import enMessages from '../../messages/en.json';
+import ptMessages from '../../messages/pt.json';
 
-function LanguageToggle() {
-  const { lang, setLang } = useTranslation();
-  return <button onClick={() => setLang(lang === 'en' ? 'pt' : 'en')}>Toggle language</button>;
+function render(ui: ReactElement, locale: 'en' | 'pt' = 'en') {
+  const messages = locale === 'pt' ? ptMessages : enMessages;
+  return rtlRender(
+    <NextIntlClientProvider locale={locale} messages={messages}>
+      {ui}
+    </NextIntlClientProvider>,
+  );
+}
+
+function LocaleSwitchingForm() {
+  const [locale, setLocale] = useState<'en' | 'pt'>('en');
+
+  return (
+    <NextIntlClientProvider locale={locale} messages={locale === 'pt' ? ptMessages : enMessages}>
+      <button type="button" onClick={() => setLocale('pt')}>
+        Use Portuguese
+      </button>
+      <StateForm onSubmitState={vi.fn()} />
+    </NextIntlClientProvider>
+  );
 }
 
 describe('StateForm', () => {
@@ -206,23 +226,18 @@ describe('StateForm', () => {
     );
   });
 
-  it('translates existing validation errors when the language changes', async () => {
-    localStorage.removeItem('app_lang');
+  it('updates existing validation errors when the active locale changes', async () => {
     const user = userEvent.setup();
 
-    render(
-      <TranslationProvider>
-        <LanguageToggle />
-        <StateForm onSubmitState={vi.fn()} />
-      </TranslationProvider>,
-    );
+    render(<LocaleSwitchingForm />);
 
     const abbreviation = screen.getByLabelText('Abbreviation');
     await user.click(abbreviation);
     await user.tab();
+
     expect(screen.getByText('Enter the state abbreviation with 2 letters.')).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: 'Toggle language' }));
+    await user.click(screen.getByRole('button', { name: 'Use Portuguese' }));
 
     expect(screen.getByText('Digite a sigla do estado com 2 letras.')).toBeInTheDocument();
   });

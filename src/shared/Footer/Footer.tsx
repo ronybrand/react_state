@@ -3,10 +3,11 @@
 import { useFrontendVersion } from '../../hooks/useFrontendVersion';
 import { useBackendInfo } from '../../hooks/useBackendInfo';
 import { formatDate } from '../../lib/formatDate';
-import { useTranslation } from '../../i18n/TranslationProvider';
+import { useLocale, useTranslations } from 'next-intl';
 
 export function Footer() {
-  const { lang, t } = useTranslation();
+  const locale = useLocale();
+  const t = useTranslations();
   const { data: frontendVersion } = useFrontendVersion();
   const { data: backendInfo } = useBackendInfo();
 
@@ -19,14 +20,14 @@ export function Footer() {
       {frontendVersion && (
         <span>
           {t('frontendVersion')} {frontendVersion.commit} ·{' '}
-          {formatDate(frontendVersion.buildDate, lang)}
+          {formatDate(frontendVersion.buildDate, locale)}
         </span>
       )}
       {frontendVersion && backendInfo && <span className="mx-2">|</span>}
       {backendInfo && (
         <span>
           {t('backendVersion')} {backendInfo.build.commit} ·{' '}
-          {formatDate(backendInfo.build.time, lang)}
+          {formatDate(backendInfo.build.time, locale)}
         </span>
       )}
     </footer>

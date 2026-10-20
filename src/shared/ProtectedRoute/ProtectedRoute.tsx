@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, type ReactNode } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '../../i18n/navigation';
 import { useTokenValid } from '../../hooks/useTokenValid';
 
 // Vite original rendered <Navigate/> + <Outlet/> as a react-router layout

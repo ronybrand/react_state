@@ -1,5 +1,6 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { RouteError } from './RouteError';
+import { renderWithProviders } from '../../testUtils';
 
 vi.mock('next/link', () => ({
   default: ({ href, children, ...rest }: React.ComponentProps<'a'>) => (
@@ -17,9 +18,9 @@ vi.mock('next/link', () => ({
 // an `error` prop instead of relying on a router to catch a throw.
 describe('RouteError', () => {
   it('shows an error message and a link back to home', () => {
-    render(<RouteError error={new Error('render failure')} />);
+    renderWithProviders(<RouteError error={new Error('render failure')} />);
 
     expect(screen.getByRole('alert')).toHaveTextContent('Something went wrong');
-    expect(screen.getByRole('link', { name: 'Back to home' })).toHaveAttribute('href', '/');
+    expect(screen.getByRole('link', { name: 'Back to home' })).toHaveAttribute('href', '/en');
   });
 });

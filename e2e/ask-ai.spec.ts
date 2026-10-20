@@ -18,8 +18,7 @@ test.describe('Ask AI', () => {
       });
     });
 
-    await page.addInitScript(() => localStorage.setItem('app_lang', 'pt'));
-    await page.goto('/ask-ai');
+    await page.goto('/pt/ask-ai');
     await page.getByRole('textbox', { name: 'Sua pergunta' }).fill('  Quantos estados existem?  ');
     await page.getByRole('button', { name: 'Perguntar' }).click();
 

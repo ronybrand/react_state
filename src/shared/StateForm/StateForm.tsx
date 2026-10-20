@@ -3,8 +3,12 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { Icon } from '../Icon/Icon';
-import { createNewStateSchema, type NewState } from '../../interfaces/state';
-import { translateKnownError, useTranslation } from '../../i18n/TranslationProvider';
+import {
+  createNewStateSchema,
+  isStateValidationMessageKey,
+  type NewState,
+} from '../../interfaces/state';
+import { useTranslations } from 'next-intl';
 
 interface StateFormProps {
   initialValues?: NewState;
@@ -22,16 +26,21 @@ export function StateForm({
   existingAbbreviations = [],
   onSubmitState,
 }: StateFormProps) {
-  const { t } = useTranslation();
+  const t = useTranslations();
+  function validationMessage(message: string | undefined) {
+    if (!message) {
+      return message;
+    }
+    return isStateValidationMessageKey(message) ? t(message) : message;
+  }
+
   const {
     register,
     handleSubmit,
     formState: { errors, isValid, isDirty },
   } = useForm<NewState>({
     mode: 'onTouched',
-    resolver: zodResolver(
-      createNewStateSchema(existingAbbreviations, initialValues?.abbreviation, t),
-    ),
+    resolver: zodResolver(createNewStateSchema(existingAbbreviations, initialValues?.abbreviation)),
     defaultValues: { abbreviation: '', name: '' },
     values: initialValues,
   });
@@ -59,7 +68,7 @@ export function StateForm({
         />
         {errors.abbreviation && (
           <div id="abbreviation-error" className="text-danger mt-1 text-sm">
-            {translateKnownError(errors.abbreviation.message, t)}
+            {validationMessage(errors.abbreviation.message)}
           </div>
         )}
       </div>
@@ -78,7 +87,7 @@ export function StateForm({
         />
         {errors.name && (
           <div id="name-error" className="text-danger mt-1 text-sm">
-            {translateKnownError(errors.name.message, t)}
+            {validationMessage(errors.name.message)}
           </div>
         )}
       </div>

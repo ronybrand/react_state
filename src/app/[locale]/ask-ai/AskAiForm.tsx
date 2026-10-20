@@ -4,12 +4,12 @@ import { useState, type FormEvent } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { isAxiosError } from 'axios';
-import { useTranslation } from '../../i18n/TranslationProvider';
-import { apiErrorMessage } from '../../lib/apiErrorMessage';
-import { extractRequestId } from '../../lib/extractRequestId';
-import { askService } from '../../services/askService';
-import { ErrorMessage } from '../../shared/ErrorMessage/ErrorMessage';
-import { useErrorMessage } from '../../shared/ErrorMessage/useErrorMessage';
+import { useLocale, useTranslations } from 'next-intl';
+import { apiErrorMessage } from '../../../lib/apiErrorMessage';
+import { extractRequestId } from '../../../lib/extractRequestId';
+import { askService } from '../../../services/askService';
+import { ErrorMessage } from '../../../shared/ErrorMessage/ErrorMessage';
+import { useErrorMessage } from '../../../shared/ErrorMessage/useErrorMessage';
 
 const MAX_QUESTION_LENGTH = 1000;
 const AI_AGENT_REPOSITORY = 'https://github.com/ronybrand/estado-ai-agent';
@@ -36,7 +36,8 @@ function getAskErrorMessage(error: unknown, fallback: string): string {
 }
 
 export function AskAiForm() {
-  const { lang, t } = useTranslation();
+  const locale = useLocale();
+  const t = useTranslations();
   const [question, setQuestion] = useState('');
   const [answer, setAnswer] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -53,7 +54,7 @@ export function AskAiForm() {
     setAnswer(null);
     setIsSubmitting(true);
     try {
-      const response = await askService.ask(trimmedQuestion, lang);
+      const response = await askService.ask(trimmedQuestion, locale);
       setAnswer(response.answer);
     } catch (requestError) {
       setError(getAskErrorMessage(requestError, t('askAiError')), extractRequestId(requestError));
