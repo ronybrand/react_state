@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { GET, POST, PUT, DELETE, MAX_BODY_BYTES } from './route';
+import { GET, POST, PUT, DELETE, BACKEND_TIMEOUT_MS, MAX_BODY_BYTES, maxDuration } from './route';
 
 const BACKEND_BASE_URL = 'http://backend.internal:8080';
 const REQUEST_ID = '123e4567-e89b-12d3-a456-426614174000';
@@ -199,6 +199,32 @@ describe('app/api/[...path] route (backend proxy)', () => {
     const response = await POST(request, { params: Promise.resolve({ path: ['auth', 'login'] }) });
 
     expect(response.status).toBe(200);
+  });
+
+  it('proxies AI questions through the backend with enough time for the agent response', async () => {
+    fetchMock.mockResolvedValue(jsonResponse('{"answer":"Resposta"}', 200));
+    const body = JSON.stringify({ question: 'Quantos estados existem?' });
+    const request = new NextRequest('http://localhost:3000/api/ask?lang=pt', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body,
+    });
+
+    const response = await POST(request, { params: Promise.resolve({ path: ['ask'] }) });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      `${BACKEND_BASE_URL}/ask?lang=pt`,
+      expect.objectContaining({
+        method: 'POST',
+        headers: expect.objectContaining({ 'Content-Type': 'application/json' }),
+        body,
+        signal: expect.any(AbortSignal),
+      }),
+    );
+    expect(BACKEND_TIMEOUT_MS).toBeGreaterThan(45_000);
+    expect(maxDuration).toBeGreaterThan(BACKEND_TIMEOUT_MS / 1000);
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({ answer: 'Resposta' });
   });
 
   it('refuses a non-JSON backend body (HTML would run on the app origin) with a 502', async () => {

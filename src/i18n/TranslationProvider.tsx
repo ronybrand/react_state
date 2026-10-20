@@ -19,6 +19,19 @@ const TRANSLATIONS = {
   pt: {
     appTitle: 'Crud UF - React/Java',
     browserTitle: 'Estado — Demo ao Vivo com Agente de IA',
+    askAiLink: 'Pergunte à IA',
+    askAiTitle: 'Pergunte sobre os estados brasileiros',
+    askAiDescription:
+      'Pergunte a um assistente de IA sobre os estados brasileiros usando dados atuais da API Estado.',
+    askAiQuestionLabel: 'Sua pergunta',
+    askAiPlaceholder: 'Ex.: Quantos estados existem na região Sudeste?',
+    askAiButton: 'Perguntar',
+    askAiPendingButton: 'Perguntando...',
+    askAiError: 'Falha ao consultar o assistente. Tente novamente em instantes.',
+    askAiLanguageNote: 'O assistente entende perguntas apenas em português ou inglês.',
+    askAiHowItWorks:
+      'Um agente de IA (Spring AI + Gemini) consulta a API real do backend; as respostas usam dados atuais.',
+    askAiSourceLink: 'Ver código do agente de IA no GitHub',
     languageSwitchLabel: 'Mudar idioma para inglês',
     logoutLabel: 'Sair',
     newStateButton: 'Novo estado',
@@ -78,6 +91,19 @@ const TRANSLATIONS = {
   en: {
     appTitle: 'State CRUD - React/Java',
     browserTitle: 'Brazilian States — Live AI Agent Demo',
+    askAiLink: 'Ask AI',
+    askAiTitle: 'Ask about the Brazilian states',
+    askAiDescription:
+      'Ask an AI assistant about the Brazilian states using live data from the Estado API.',
+    askAiQuestionLabel: 'Your question',
+    askAiPlaceholder: 'E.g.: How many states are in the Southeast region?',
+    askAiButton: 'Ask',
+    askAiPendingButton: 'Asking...',
+    askAiError: 'Failed to reach the assistant. Please try again shortly.',
+    askAiLanguageNote: 'The assistant only understands questions in Portuguese or English.',
+    askAiHowItWorks:
+      'An AI agent (Spring AI + Gemini) queries the live backend API; answers are generated from current data.',
+    askAiSourceLink: 'View the AI agent source on GitHub',
     languageSwitchLabel: 'Switch language to Portuguese',
     logoutLabel: 'Log out',
     newStateButton: 'New state',

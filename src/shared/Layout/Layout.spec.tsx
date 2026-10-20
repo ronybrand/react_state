@@ -55,6 +55,7 @@ describe('Layout', () => {
       'href',
       '/',
     );
+    expect(screen.getByRole('link', { name: 'Ask AI' })).toHaveAttribute('href', '/ask-ai');
     expect(screen.getByText('content')).toBeInTheDocument();
   });
 

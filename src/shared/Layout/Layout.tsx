@@ -31,6 +31,9 @@ export function Layout({ children }: { children: ReactNode }) {
           {t('appTitle')}
         </Link>
         <div className="flex items-center gap-4">
+          <Link href="/ask-ai" className="text-sm font-semibold text-white">
+            {t('askAiLink')}
+          </Link>
           <button
             type="button"
             aria-label={t('languageSwitchLabel')}
