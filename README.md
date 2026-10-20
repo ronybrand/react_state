@@ -9,7 +9,9 @@
 CRUD for Brazilian federative units (states) — abbreviation, name, and
 created/updated timestamps — consuming the [Estado project](https://github.com/ronybrand/estado)'s
 REST API at `/api/estado`. An alternate React frontend for the same backend, alongside the
-original [Angular one](https://github.com/ronybrand/angular_estado). See the backend's
+original [Angular one](https://github.com/ronybrand/angular_estado). It also includes an **Ask AI**
+page backed by the [`estado-ai-agent`](https://github.com/ronybrand/estado-ai-agent), which answers
+questions using live state data. See the backend's
 [CASE_STUDY.md](https://github.com/ronybrand/estado/blob/master/CASE_STUDY.md) for the
 end-to-end system write-up (architecture, decisions, trade-offs).
 
@@ -29,6 +31,7 @@ flowchart LR
         direction LR
         App["estado-app\n(Spring Boot + Spring Security)"]
         DB[("Postgres")]
+        Agent["estado-ai-agent\n(Spring AI + Gemini)"]
     end
 
 
@@ -43,6 +46,8 @@ flowchart LR
     Browser -- "/api/*" --> Rewrite
     Rewrite --> App
     App --> DB
+    App -- "/ask" --> Agent
+    Agent -- "tool calls: /estado/*" --> App
     Browser -. "API unreachable:\nTurn on the API" .-> Lambda
     Lambda -. "validates the challenge" .-> Turnstile
     Lambda -. "starts / stops" .-> EC2
@@ -50,7 +55,7 @@ flowchart LR
 ```
 
 The app never talks to the backend's own origin — the catch-all route
-handler `src/app/api/[...path]/route.ts` forwards `/api/*` to it
+handler `src/app/api/[...path]/route.ts` forwards allowed `/api/*` requests, including `/api/ask`, to it
 server-side (target: `BACKEND_API_URL`), so the browser only ever sees the
 deployment's own origin
 (see [Deployment](#deployment) below). This diagram is infra/network
@@ -61,6 +66,10 @@ the Spring Boot app itself) doesn't add a box or arrow here either.
 attached as `Authorization: Bearer <token>` by an axios request
 interceptor on state-mutating calls only — listing and reading states
 stays public, matching the backend's own authorization rule.
+The Ask AI UI submits through the same BFF; its 50s server-side timeout
+allows the backend's 45s AI-proxy timeout to return first. The `ASK_API_KEY`
+remains configured only on the backend, never in this frontend's environment
+or browser bundle.
 
 Demo credentials (intentionally public): see the backend's
 [`estado`](https://github.com/ronybrand/estado#readme) README.
@@ -75,6 +84,8 @@ Demo credentials (intentionally public): see the backend's
 - [React 19](https://react.dev/) + TypeScript (strict) + [Next.js](https://nextjs.org/) (App Router)
 - [TanStack Query](https://tanstack.com/query) for data-fetching, caching, and invalidation
 - [Axios](https://axios-http.com/) with request-id and timeout/retry interceptors
+- [react-markdown](https://github.com/remarkjs/react-markdown) +
+  [remark-gfm](https://github.com/remarkjs/remark-gfm) for safe AI response rendering
 - [React Hook Form](https://react-hook-form.com/) for form validation
 - [Tailwind CSS](https://tailwindcss.com/) v4
 - [Vitest](https://vitest.dev/) + [React Testing Library](https://testing-library.com/react) for component tests
@@ -84,7 +95,7 @@ Demo credentials (intentionally public): see the backend's
 
 ```
 src/
-├── app/                 # App Router: pages, layouts, providers, /api proxy route, error.tsx
+├── app/                 # App Router: pages, layouts, Ask AI UI, /api proxy route, error.tsx
 ├── shared/
 │   ├── Layout/             # app shell: title bar + children + Footer
 │   ├── Footer/              # FE/BE build info, hides silently on failure
@@ -101,7 +112,7 @@ src/
 │                            localStorage), error extractors, formatDate
 ├── interfaces/           # State / NewState / FrontendVersion / BackendInfo domain types
 ├── services/             # stateService + stateApiMapper (wire <-> domain), authService,
-│                            infoService
+│                            askService, infoService
 └── proxy.ts                # Next proxy (ex-middleware): sets the CSP header
 
 scripts/
@@ -222,7 +233,7 @@ npm test               # vitest
 npm run test:coverage  # vitest run --coverage
 ```
 
-Vitest + React Testing Library, covering the list/create/edit/delete flows,
+Vitest + React Testing Library, covering the list/create/edit/delete and Ask AI flows,
 shared-form validation, the support components (`Icon`, `Spinner`,
 `ErrorMessage`/`useErrorMessage`, `RouteError`), and `lib`/`services`
 utilities. Coverage is reported in CI via Codecov, gated at 90% (project) /
