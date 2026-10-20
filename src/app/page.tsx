@@ -12,6 +12,7 @@ import { ConfirmDialog, type ConfirmDialogHandle } from '../shared/ConfirmDialog
 import { extractRequestId } from '../lib/extractRequestId';
 import { apiErrorMessage } from '../lib/apiErrorMessage';
 import { formatDate } from '../lib/formatDate';
+import { useTranslation } from '../i18n/TranslationProvider';
 
 type SortField = 'nome' | 'sigla';
 type SortDirection = 'asc' | 'desc';
@@ -19,6 +20,7 @@ type SortDirection = 'asc' | 'desc';
 const DEBOUNCE_MS = 300;
 
 export default function StateList() {
+  const { lang, t } = useTranslation();
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [sortField, setSortField] = useState<SortField | null>(null);
@@ -41,9 +43,9 @@ export default function StateList() {
 
   useEffect(() => {
     if (isError) {
-      setError(apiErrorMessage(loadError, 'Failed to fetch states.'), extractRequestId(loadError));
+      setError(apiErrorMessage(loadError, t('loadStatesError')), extractRequestId(loadError));
     }
-  }, [isError, loadError, setError]);
+  }, [isError, loadError, setError, t]);
 
   // Manual debounce with setTimeout instead of a library/rxjs-like operator:
   // it's a single simple interaction (one search box), nowhere else in the
@@ -92,7 +94,7 @@ export default function StateList() {
     }
     deleteState.mutate(pendingDelete.id, {
       onError: (err) => {
-        setError(apiErrorMessage(err, 'Failed to delete state.'), extractRequestId(err));
+        setError(apiErrorMessage(err, t('deleteStateError')), extractRequestId(err));
       },
     });
   }
@@ -107,23 +109,23 @@ export default function StateList() {
           className="bg-success hover:bg-success/90 inline-flex items-center gap-1 rounded px-3 py-1.5 text-sm text-white"
         >
           <Icon name="plus" />
-          New state
+          {t('newStateButton')}
         </Link>
       </div>
 
       <div className="rounded border border-gray-200">
         <div className="font-display border-b border-gray-200 bg-gray-50 px-4 py-2 font-semibold">
-          States
+          {t('statesTitle')}
         </div>
         <div className="p-4">
           <div className="mb-3">
             <label htmlFor="state-search" className="sr-only">
-              Search by name or abbreviation
+              {t('searchLabel')}
             </label>
             <input
               id="state-search"
               type="search"
-              placeholder="Search by name or abbreviation..."
+              placeholder={t('searchPlaceholder')}
               value={search}
               onChange={(e) => handleSearchChange(e.target.value)}
               className="w-full rounded border border-gray-300 px-3 py-1.5 text-sm"
@@ -134,12 +136,12 @@ export default function StateList() {
 
           {!isLoading && states.length === 0 && (
             <div className="py-3 text-center text-gray-500">
-              <p>No states registered.</p>
+              <p>{t('noStates')}</p>
               <Link
                 href="/state/new"
                 className="bg-success hover:bg-success/90 mt-2 inline-block rounded px-3 py-1 text-sm text-white"
               >
-                Create the first state
+                {t('createFirstState')}
               </Link>
             </div>
           )}
@@ -154,7 +156,7 @@ export default function StateList() {
                       onClick={() => handleSort('sigla')}
                       className="inline-flex cursor-pointer items-center gap-1 font-semibold"
                     >
-                      Abbreviation
+                      {t('siglaHeader')}
                       {sortField === 'sigla' && (
                         <Icon
                           name={sortDirection === 'asc' ? 'chevron-up' : 'chevron-down'}
@@ -169,7 +171,7 @@ export default function StateList() {
                       onClick={() => handleSort('nome')}
                       className="inline-flex cursor-pointer items-center gap-1 font-semibold"
                     >
-                      Name
+                      {t('nomeHeader')}
                       {sortField === 'nome' && (
                         <Icon
                           name={sortDirection === 'asc' ? 'chevron-up' : 'chevron-down'}
@@ -178,9 +180,9 @@ export default function StateList() {
                       )}
                     </button>
                   </th>
-                  <th className="hidden p-2 md:table-cell">Created</th>
-                  <th className="hidden p-2 md:table-cell">Last Updated</th>
-                  <th className="p-2">Actions</th>
+                  <th className="hidden p-2 md:table-cell">{t('createdHeader')}</th>
+                  <th className="hidden p-2 md:table-cell">{t('updatedHeader')}</th>
+                  <th className="p-2">{t('actionsHeader')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -189,29 +191,29 @@ export default function StateList() {
                     <td className="p-2 font-semibold">{state.abbreviation}</td>
                     <td className="p-2">{state.name}</td>
                     <td className="hidden p-2 font-mono text-xs text-gray-500 md:table-cell">
-                      {formatDate(state.createdAt)}
+                      {formatDate(state.createdAt, lang)}
                     </td>
                     <td className="hidden p-2 font-mono text-xs text-gray-500 md:table-cell">
-                      {formatDate(state.updatedAt)}
+                      {formatDate(state.updatedAt, lang)}
                     </td>
                     <td className="space-x-1 p-2">
                       <Link
                         href={`/state/${state.id}/edit`}
-                        aria-label={`Edit ${state.abbreviation}`}
+                        aria-label={t('editStateAria', { abbreviation: state.abbreviation })}
                         className="bg-brand hover:bg-brand-dark inline-flex items-center gap-1 rounded px-2 py-1 text-white"
                       >
                         <Icon name="pencil" size={14} />
-                        <span className="hidden md:inline">Edit</span>
+                        <span className="hidden md:inline">{t('editButton')}</span>
                       </Link>
                       <button
                         type="button"
-                        aria-label={`Delete ${state.abbreviation}`}
+                        aria-label={t('deleteStateAria', { abbreviation: state.abbreviation })}
                         disabled={deleteState.isPending}
                         onClick={() => handleDelete(state.id, state.abbreviation)}
                         className="bg-danger inline-flex cursor-pointer items-center gap-1 rounded px-2 py-1 text-white hover:opacity-90 disabled:cursor-default disabled:opacity-50"
                       >
                         <Icon name="trash" size={14} />
-                        <span className="hidden md:inline">Delete</span>
+                        <span className="hidden md:inline">{t('deleteButton')}</span>
                       </button>
                     </td>
                   </tr>
@@ -225,8 +227,8 @@ export default function StateList() {
         ref={confirmDialog}
         message={
           pendingDelete
-            ? `Are you sure you want to delete ${pendingDelete.abbreviation}?`
-            : 'Are you sure you want to delete this state?'
+            ? t('confirmDelete', { abbreviation: pendingDelete.abbreviation })
+            : t('confirmDeleteGeneric')
         }
         onConfirm={confirmDeletion}
         onCancel={() => setPendingDelete(null)}

@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { Icon } from '../Icon/Icon';
 import { createNewStateSchema, type NewState } from '../../interfaces/state';
+import { translateKnownError, useTranslation } from '../../i18n/TranslationProvider';
 
 interface StateFormProps {
   initialValues?: NewState;
@@ -21,13 +22,16 @@ export function StateForm({
   existingAbbreviations = [],
   onSubmitState,
 }: StateFormProps) {
+  const { t } = useTranslation();
   const {
     register,
     handleSubmit,
     formState: { errors, isValid, isDirty },
   } = useForm<NewState>({
     mode: 'onTouched',
-    resolver: zodResolver(createNewStateSchema(existingAbbreviations, initialValues?.abbreviation)),
+    resolver: zodResolver(
+      createNewStateSchema(existingAbbreviations, initialValues?.abbreviation, t),
+    ),
     defaultValues: { abbreviation: '', name: '' },
     values: initialValues,
   });
@@ -38,7 +42,7 @@ export function StateForm({
     <form onSubmit={handleSubmit(onSubmitState)} className="space-y-4">
       <div>
         <label htmlFor="abbreviation" className="mb-1 block text-sm font-medium text-gray-700">
-          Abbreviation
+          {t('abbreviationLabel')}
         </label>
         <input
           id="abbreviation"
@@ -55,18 +59,18 @@ export function StateForm({
         />
         {errors.abbreviation && (
           <div id="abbreviation-error" className="text-danger mt-1 text-sm">
-            {errors.abbreviation.message}
+            {translateKnownError(errors.abbreviation.message, t)}
           </div>
         )}
       </div>
 
       <div>
         <label htmlFor="name" className="mb-1 block text-sm font-medium text-gray-700">
-          Name
+          {t('nameLabel')}
         </label>
         <input
           id="name"
-          placeholder="Enter the state name..."
+          placeholder={t('namePlaceholder')}
           className={`${inputClass} w-full`}
           aria-invalid={errors.name ? true : undefined}
           aria-describedby="name-error"
@@ -74,7 +78,7 @@ export function StateForm({
         />
         {errors.name && (
           <div id="name-error" className="text-danger mt-1 text-sm">
-            {errors.name.message}
+            {translateKnownError(errors.name.message, t)}
           </div>
         )}
       </div>
@@ -86,7 +90,7 @@ export function StateForm({
           className="bg-brand hover:bg-brand-dark inline-flex cursor-pointer items-center gap-1 rounded px-4 py-1.5 text-white disabled:cursor-default disabled:opacity-50"
         >
           <Icon name="check" size={14} />
-          Save
+          {t('saveButton')}
         </button>
       </div>
     </form>

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { Translate } from '../i18n/TranslationProvider';
 
 export interface State {
   id: number;
@@ -11,23 +12,32 @@ export interface State {
 export function createNewStateSchema(
   existingAbbreviations: string[] = [],
   currentAbbreviation?: string,
+  translate?: Translate,
 ) {
   return z.object({
     abbreviation: z
       .string()
       .trim()
       .toUpperCase()
-      .length(2, 'Enter the state abbreviation with 2 letters.')
-      .regex(/^[A-Z]{2}$/, 'Enter the state abbreviation with 2 uppercase letters.')
+      .length(
+        2,
+        translate?.('abbreviationLengthError') ?? 'Enter the state abbreviation with 2 letters.',
+      )
+      .regex(
+        /^[A-Z]{2}$/,
+        translate?.('abbreviationFormatError') ??
+          'Enter the state abbreviation with 2 uppercase letters.',
+      )
       .refine(
         (value) => value === currentAbbreviation || !existingAbbreviations.includes(value),
-        'A state with this abbreviation already exists.',
+        translate?.('abbreviationDuplicateError') ??
+          'A state with this abbreviation already exists.',
       ),
     name: z
       .string()
       .trim()
-      .min(3, 'Enter the state name with at least 3 characters.')
-      .max(100, 'Enter the state name with at most 100 characters.'),
+      .min(3, translate?.('nameMinError') ?? 'Enter the state name with at least 3 characters.')
+      .max(100, translate?.('nameMaxError') ?? 'Enter the state name with at most 100 characters.'),
   });
 }
 

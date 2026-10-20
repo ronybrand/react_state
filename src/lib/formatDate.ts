@@ -1,4 +1,6 @@
-const formatter = new Intl.DateTimeFormat('en-US', {
+import type { Lang } from '../i18n/TranslationProvider';
+
+const options: Intl.DateTimeFormatOptions = {
   day: '2-digit',
   month: '2-digit',
   year: 'numeric',
@@ -6,11 +8,11 @@ const formatter = new Intl.DateTimeFormat('en-US', {
   minute: '2-digit',
   second: '2-digit',
   hour12: true,
-});
+};
 
-export function formatDate(iso: string | null | undefined): string {
+export function formatDate(iso: string | null | undefined, lang: Lang = 'en'): string {
   if (!iso) {
     return '-';
   }
-  return formatter.format(new Date(iso));
+  return new Intl.DateTimeFormat(lang === 'pt' ? 'pt-BR' : 'en-US', options).format(new Date(iso));
 }

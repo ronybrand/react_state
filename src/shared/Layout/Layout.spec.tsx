@@ -61,7 +61,7 @@ describe('Layout', () => {
   it('does not show the logout button when there is no valid token', () => {
     renderLayout();
 
-    expect(screen.queryByRole('button', { name: 'Sair' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Log out' })).not.toBeInTheDocument();
   });
 
   it('shows the logout button when authenticated', () => {
@@ -69,14 +69,14 @@ describe('Layout', () => {
 
     renderLayout();
 
-    expect(screen.getByRole('button', { name: 'Sair' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Log out' })).toBeInTheDocument();
   });
 
   it('clears the token and redirects to /login on logout click', async () => {
     setToken(validToken());
     renderLayout();
 
-    await userEvent.click(screen.getByRole('button', { name: 'Sair' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Log out' }));
 
     expect(mockPush).toHaveBeenCalledWith('/login');
     expect(localStorage.getItem('estado_jwt')).toBeNull();

@@ -7,12 +7,14 @@ import { Footer } from '../Footer/Footer';
 import { Icon } from '../Icon/Icon';
 import { authService } from '../../services/authService';
 import { useTokenValid } from '../../hooks/useTokenValid';
+import { useTranslation } from '../../i18n/TranslationProvider';
 
 // Vite original wrapped react-router's <Outlet/> - Next's App Router has no
 // nested-route outlet, so this now takes `children` and is rendered from
 // app/layout.tsx around {children} directly.
 export function Layout({ children }: { children: ReactNode }) {
   const router = useRouter();
+  const { lang, setLang, t } = useTranslation();
   // Hydration-safe (see useTokenValid): the logout button only appears once
   // the client knows the token state, never in the server HTML.
   const loggedIn = useTokenValid() === true;
@@ -26,19 +28,30 @@ export function Layout({ children }: { children: ReactNode }) {
     <div className="flex min-h-screen flex-col">
       <nav className="bg-brand flex items-center justify-between px-4 py-3">
         <Link href="/" className="font-display text-lg font-semibold text-white">
-          State CRUD - React/Java
+          {t('appTitle')}
         </Link>
-        {loggedIn && (
+        <div className="flex items-center gap-4">
           <button
             type="button"
-            aria-label="Sair"
-            title="Sair"
-            className="cursor-pointer text-white"
-            onClick={handleLogout}
+            aria-label={t('languageSwitchLabel')}
+            title={t('languageSwitchLabel')}
+            className="cursor-pointer text-sm font-semibold text-white"
+            onClick={() => setLang(lang === 'pt' ? 'en' : 'pt')}
           >
-            <Icon name="box-arrow-right" />
+            {lang === 'pt' ? 'EN' : 'PT'}
           </button>
-        )}
+          {loggedIn && (
+            <button
+              type="button"
+              aria-label={t('logoutLabel')}
+              title={t('logoutLabel')}
+              className="cursor-pointer text-white"
+              onClick={handleLogout}
+            >
+              <Icon name="box-arrow-right" />
+            </button>
+          )}
+        </div>
       </nav>
       <div className="flex-1">{children}</div>
       <Footer />

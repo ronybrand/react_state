@@ -9,8 +9,10 @@ import { useStates } from '../../../../hooks/useStates';
 import { extractRequestId } from '../../../../lib/extractRequestId';
 import { apiErrorMessage } from '../../../../lib/apiErrorMessage';
 import type { NewState } from '../../../../interfaces/state';
+import { useTranslation } from '../../../../i18n/TranslationProvider';
 
 export default function CreateState() {
+  const { t } = useTranslation();
   const router = useRouter();
   const createState = useCreateState();
   const { data: states } = useStates();
@@ -20,13 +22,13 @@ export default function CreateState() {
     createState.mutate(state, {
       onSuccess: () => router.push('/'),
       onError: (err) => {
-        setError(apiErrorMessage(err, 'Failed to create state.'), extractRequestId(err));
+        setError(apiErrorMessage(err, t('addStateError')), extractRequestId(err));
       },
     });
   }
 
   return (
-    <FormPage title="New state" error={error} requestId={requestId}>
+    <FormPage title={t('createTitle')} error={error} requestId={requestId}>
       <StateForm
         disabled={createState.isPending}
         existingAbbreviations={states?.map((state) => state.abbreviation)}

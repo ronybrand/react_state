@@ -7,6 +7,10 @@ describe('formatDate', () => {
     );
   });
 
+  it('formats dates using Brazilian Portuguese conventions when selected', () => {
+    expect(formatDate('2024-01-05T13:04:09Z', 'pt')).toMatch(/^0[45]\/01\/2024/);
+  });
+
   it('respects the given date', () => {
     const result = formatDate('2024-03-20T00:00:00Z');
 
