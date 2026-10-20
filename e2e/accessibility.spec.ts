@@ -11,7 +11,7 @@ test.describe('Accessibility (axe-core, WCAG 2.1 A/AA)', () => {
   });
 
   test('login has no violations', async ({ page }) => {
-    await page.goto('/login');
+    await page.goto('/en/login');
     await expect(page.locator('#username')).toBeVisible();
     await expect(page.locator('footer')).toBeVisible();
 
@@ -29,7 +29,7 @@ test.describe('Accessibility (axe-core, WCAG 2.1 A/AA)', () => {
       }),
     );
 
-    await page.goto('/login');
+    await page.goto('/en/login');
     await page.locator('#username').fill('admin');
     await page.locator('#password').fill('wrong-password');
     await page.getByRole('button', { name: 'Log in' }).click();
@@ -75,7 +75,7 @@ test.describe('Accessibility (axe-core, WCAG 2.1 A/AA)', () => {
 
   test('create form has no violations', async ({ page }) => {
     await authenticated(page);
-    await page.goto('/state/new');
+    await page.goto('/en/state/new');
     await expect(page.locator('footer')).toBeVisible();
 
     const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
@@ -87,7 +87,7 @@ test.describe('Accessibility (axe-core, WCAG 2.1 A/AA)', () => {
     await authenticated(page);
     const state = STATES[0];
     await mockGetState(page, state);
-    await page.goto(`/state/${state.id}/edit`);
+    await page.goto(`/en/state/${state.id}/edit`);
     await expect(page.locator('#abbreviation')).toHaveValue(state.sigla);
     await expect(page.locator('footer')).toBeVisible();
 

@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import { proxy, config } from './proxy';
 
 function run() {
-  const response = proxy(new NextRequest('http://localhost:3000/'));
+  const response = proxy(new NextRequest('http://localhost:3000/en'));
   return response.headers.get('Content-Security-Policy') ?? '';
 }
 
@@ -25,8 +25,22 @@ describe('proxy (CSP)', () => {
     expect(run()).not.toEqual(run());
   });
 
+  it('redirects unprefixed pages to the default locale and preserves query parameters', () => {
+    const response = proxy(new NextRequest('http://localhost:3000/login?next=%2Fstate'));
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get('location')).toBe('http://localhost:3000/en/login?next=%2Fstate');
+  });
+
+  it('keeps an explicitly selected locale in the URL', () => {
+    const response = proxy(new NextRequest('http://localhost:3000/pt/login'));
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get('location')).toBeNull();
+  });
+
   it('forwards the same nonce and CSP on the request headers Next reads while rendering', () => {
-    const response = proxy(new NextRequest('http://localhost:3000/'));
+    const response = proxy(new NextRequest('http://localhost:3000/en'));
     const csp = response.headers.get('Content-Security-Policy');
     const overridden = response.headers.get('x-middleware-override-headers') ?? '';
 

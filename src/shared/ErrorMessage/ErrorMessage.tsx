@@ -1,7 +1,7 @@
 'use client';
 
 import { API_UNAVAILABLE_MESSAGE, startApiUrl } from '../../lib/apiErrorMessage';
-import { translateKnownError, useTranslation } from '../../i18n/TranslationProvider';
+import { useLocale, useTranslations } from 'next-intl';
 
 interface ErrorMessageProps {
   error: string | null;
@@ -9,13 +9,13 @@ interface ErrorMessageProps {
 }
 
 export function ErrorMessage({ error, requestId }: ErrorMessageProps) {
-  const { lang, t } = useTranslation();
+  const locale = useLocale();
+  const t = useTranslations();
   if (!error) {
     return null;
   }
 
-  const message =
-    error === API_UNAVAILABLE_MESSAGE ? t('apiUnavailableMessage') : translateKnownError(error, t);
+  const message = error === API_UNAVAILABLE_MESSAGE ? t('apiUnavailableMessage') : error;
 
   return (
     <div
@@ -26,7 +26,7 @@ export function ErrorMessage({ error, requestId }: ErrorMessageProps) {
       {message}
       {error === API_UNAVAILABLE_MESSAGE && (
         <a
-          href={startApiUrl(window.location.href, lang)}
+          href={startApiUrl(window.location.href, locale)}
           target="_blank"
           rel="noopener noreferrer"
           className="mt-2 block underline"

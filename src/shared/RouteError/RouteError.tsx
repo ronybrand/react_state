@@ -1,15 +1,15 @@
 'use client';
 
-import Link from 'next/link';
-import { useTranslation } from '../../i18n/TranslationProvider';
+import { useTranslations } from 'next-intl';
+import { Link } from '@/i18n/navigation';
 
 // Vite original used react-router's useRouteError() inside an
 // errorElement/Component pair on the router config. Next's App Router error
 // boundary convention passes `error`/`reset` as props to a special
 // error.tsx file instead - this component is kept as a presentational piece
-// taking an optional `error` prop so it can be reused from app/error.tsx.
+// taking an optional `error` prop so it can be reused from the route error boundary.
 export function RouteError({ error }: { error?: unknown } = {}) {
-  const { t } = useTranslation();
+  const t = useTranslations();
   if (process.env.NODE_ENV === 'development' && error) {
     console.error(error);
   }

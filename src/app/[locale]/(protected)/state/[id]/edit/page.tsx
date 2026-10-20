@@ -1,24 +1,25 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
-import { StateForm } from '../../../../../shared/StateForm/StateForm';
-import { FormPage } from '../../../../../shared/FormPage/FormPage';
-import { useErrorMessage } from '../../../../../shared/ErrorMessage/useErrorMessage';
-import { Spinner } from '../../../../../shared/Spinner/Spinner';
-import { useStateById } from '../../../../../hooks/useStateById';
-import { useStates } from '../../../../../hooks/useStates';
-import { useUpdateState } from '../../../../../hooks/useUpdateState';
-import { extractRequestId } from '../../../../../lib/extractRequestId';
-import { apiErrorMessage } from '../../../../../lib/apiErrorMessage';
-import type { NewState } from '../../../../../interfaces/state';
-import { useTranslation } from '../../../../../i18n/TranslationProvider';
+import { useParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { useRouter } from '@/i18n/navigation';
+import { StateForm } from '@/shared/StateForm/StateForm';
+import { FormPage } from '@/shared/FormPage/FormPage';
+import { useErrorMessage } from '@/shared/ErrorMessage/useErrorMessage';
+import { Spinner } from '@/shared/Spinner/Spinner';
+import { useStateById } from '@/hooks/useStateById';
+import { useStates } from '@/hooks/useStates';
+import { useUpdateState } from '@/hooks/useUpdateState';
+import { extractRequestId } from '@/lib/extractRequestId';
+import { apiErrorMessage } from '@/lib/apiErrorMessage';
+import type { NewState } from '@/interfaces/state';
 
 // Client Component, so `useParams()` from next/navigation is used instead
 // of the route's `params` prop (which in Next 15+ App Router is a Promise
 // meant for Server Components).
 export default function EditState() {
-  const { t } = useTranslation();
+  const t = useTranslations();
   const params = useParams<{ id: string }>();
   const id = params.id;
   const router = useRouter();

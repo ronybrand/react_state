@@ -7,12 +7,19 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      'next/navigation': path.resolve(__dirname, 'node_modules/next/navigation.js'),
+      'next/server': path.resolve(__dirname, 'node_modules/next/server.js'),
     },
   },
   test: {
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./src/setupTests.ts'],
+    server: {
+      deps: {
+        inline: ['next-intl'],
+      },
+    },
     css: true,
     coverage: {
       provider: 'v8',

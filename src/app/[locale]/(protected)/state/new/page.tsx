@@ -1,18 +1,18 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { StateForm } from '../../../../shared/StateForm/StateForm';
-import { FormPage } from '../../../../shared/FormPage/FormPage';
-import { useErrorMessage } from '../../../../shared/ErrorMessage/useErrorMessage';
-import { useCreateState } from '../../../../hooks/useCreateState';
-import { useStates } from '../../../../hooks/useStates';
-import { extractRequestId } from '../../../../lib/extractRequestId';
-import { apiErrorMessage } from '../../../../lib/apiErrorMessage';
-import type { NewState } from '../../../../interfaces/state';
-import { useTranslation } from '../../../../i18n/TranslationProvider';
+import { useTranslations } from 'next-intl';
+import { useRouter } from '@/i18n/navigation';
+import { StateForm } from '@/shared/StateForm/StateForm';
+import { FormPage } from '@/shared/FormPage/FormPage';
+import { useErrorMessage } from '@/shared/ErrorMessage/useErrorMessage';
+import { useCreateState } from '@/hooks/useCreateState';
+import { useStates } from '@/hooks/useStates';
+import { extractRequestId } from '@/lib/extractRequestId';
+import { apiErrorMessage } from '@/lib/apiErrorMessage';
+import type { NewState } from '@/interfaces/state';
 
 export default function CreateState() {
-  const { t } = useTranslation();
+  const t = useTranslations();
   const router = useRouter();
   const createState = useCreateState();
   const { data: states } = useStates();

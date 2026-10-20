@@ -17,16 +17,16 @@ test.describe('Create state', () => {
     await authenticated(page);
     await mockCreateState(page);
 
-    await page.goto('/state/new');
+    await page.goto('/en/state/new');
     await fillValidForm(page);
     await page.getByRole('button', { name: 'Save' }).click();
 
-    await expect(page).toHaveURL('/');
+    await expect(page).toHaveURL('/en');
   });
 
   test('keeps the submit button disabled while the form is invalid', async ({ page }) => {
     await authenticated(page);
-    await page.goto('/state/new');
+    await page.goto('/en/state/new');
 
     await expect(page.getByRole('button', { name: 'Save' })).toBeDisabled();
 
@@ -39,7 +39,7 @@ test.describe('Create state', () => {
     await authenticated(page);
     await mockError(page, '**/api/estado/', 500, 'POST');
 
-    await page.goto('/state/new');
+    await page.goto('/en/state/new');
     await fillValidForm(page);
     await page.getByRole('button', { name: 'Save' }).click();
 

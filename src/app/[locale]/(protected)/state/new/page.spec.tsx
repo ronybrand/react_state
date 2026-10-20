@@ -1,10 +1,10 @@
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import CreateState from './page';
-import { stateService } from '../../../../services/stateService';
-import { renderWithProviders } from '../../../../testUtils';
+import { stateService } from '@/services/stateService';
+import { renderWithProviders } from '@/testUtils';
 
-vi.mock('../../../../services/stateService', () => ({
+vi.mock('@/services/stateService', () => ({
   stateService: {
     create: vi.fn(),
     list: vi.fn().mockResolvedValue([]),
@@ -14,6 +14,8 @@ vi.mock('../../../../services/stateService', () => ({
 const mockPush = vi.hoisted(() => vi.fn());
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: mockPush }),
+  redirect: vi.fn(),
+  permanentRedirect: vi.fn(),
 }));
 
 describe('CreateState', () => {
@@ -63,7 +65,7 @@ describe('CreateState', () => {
     await user.tab();
     await user.click(screen.getByRole('button', { name: 'Save' }));
 
-    await waitFor(() => expect(mockPush).toHaveBeenCalledWith('/'));
+    await waitFor(() => expect(mockPush).toHaveBeenCalledWith('/en'));
     expect(stateService.create).toHaveBeenCalledWith(
       { abbreviation: 'RJ', name: 'Rio de Janeiro' },
       expect.anything(),

@@ -1,10 +1,10 @@
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import Login from './page';
-import { authService } from '../../services/authService';
-import { renderWithProviders } from '../../testUtils';
+import { authService } from '@/services/authService';
+import { renderWithProviders } from '@/testUtils';
 
-vi.mock('../../services/authService', () => ({
+vi.mock('@/services/authService', () => ({
   authService: {
     login: vi.fn(),
   },
@@ -16,6 +16,8 @@ vi.mock('../../services/authService', () => ({
 const mockPush = vi.hoisted(() => vi.fn());
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: mockPush }),
+  redirect: vi.fn(),
+  permanentRedirect: vi.fn(),
 }));
 
 describe('Login', () => {
@@ -35,7 +37,7 @@ describe('Login', () => {
     await user.tab();
     await user.click(screen.getByRole('button', { name: 'Log in' }));
 
-    await waitFor(() => expect(mockPush).toHaveBeenCalledWith('/'));
+    await waitFor(() => expect(mockPush).toHaveBeenCalledWith('/en'));
     expect(authService.login).toHaveBeenCalledWith(
       { username: 'admin', password: 'senha' },
       expect.anything(),
@@ -84,7 +86,7 @@ describe('Login', () => {
     await waitFor(() => expect(authService.login).toHaveBeenCalledTimes(1));
 
     resolveLogin({ token: 'token', expiresInSeconds: 3600 });
-    await waitFor(() => expect(mockPush).toHaveBeenCalledWith('/'));
+    await waitFor(() => expect(mockPush).toHaveBeenCalledWith('/en'));
   });
 
   it('shows the backend error message when login fails', async () => {

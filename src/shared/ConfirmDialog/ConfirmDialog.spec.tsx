@@ -1,7 +1,8 @@
 import { createRef } from 'react';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ConfirmDialog, type ConfirmDialogHandle } from './ConfirmDialog';
+import { renderWithProviders } from '../../testUtils';
 
 describe('ConfirmDialog', () => {
   function getDialog(): HTMLDialogElement {
@@ -9,20 +10,20 @@ describe('ConfirmDialog', () => {
   }
 
   it('renders the given message', () => {
-    render(<ConfirmDialog message="Delete SP?" onConfirm={vi.fn()} />);
+    renderWithProviders(<ConfirmDialog message="Delete SP?" onConfirm={vi.fn()} />);
 
     expect(screen.getByText('Delete SP?')).toBeInTheDocument();
   });
 
   it('starts closed', () => {
-    render(<ConfirmDialog message="Delete SP?" onConfirm={vi.fn()} />);
+    renderWithProviders(<ConfirmDialog message="Delete SP?" onConfirm={vi.fn()} />);
 
     expect(getDialog().open).toBe(false);
   });
 
   it('open() opens the dialog as a modal', () => {
     const ref = createRef<ConfirmDialogHandle>();
-    render(<ConfirmDialog ref={ref} message="Delete SP?" onConfirm={vi.fn()} />);
+    renderWithProviders(<ConfirmDialog ref={ref} message="Delete SP?" onConfirm={vi.fn()} />);
 
     ref.current?.open();
 
@@ -33,7 +34,7 @@ describe('ConfirmDialog', () => {
     const user = userEvent.setup();
     const ref = createRef<ConfirmDialogHandle>();
     const onConfirm = vi.fn();
-    render(<ConfirmDialog ref={ref} message="Delete SP?" onConfirm={onConfirm} />);
+    renderWithProviders(<ConfirmDialog ref={ref} message="Delete SP?" onConfirm={onConfirm} />);
     ref.current?.open();
 
     await user.click(screen.getByRole('button', { name: 'Confirm' }));
@@ -46,7 +47,7 @@ describe('ConfirmDialog', () => {
     const user = userEvent.setup();
     const ref = createRef<ConfirmDialogHandle>();
     const onCancel = vi.fn();
-    render(
+    renderWithProviders(
       <ConfirmDialog ref={ref} message="Delete SP?" onConfirm={vi.fn()} onCancel={onCancel} />,
     );
     ref.current?.open();
@@ -60,7 +61,7 @@ describe('ConfirmDialog', () => {
   it('calls onCancel when the dialog is dismissed via the native cancel event (Escape)', () => {
     const ref = createRef<ConfirmDialogHandle>();
     const onCancel = vi.fn();
-    render(
+    renderWithProviders(
       <ConfirmDialog ref={ref} message="Delete SP?" onConfirm={vi.fn()} onCancel={onCancel} />,
     );
     ref.current?.open();

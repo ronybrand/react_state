@@ -13,15 +13,15 @@ const REDIRECT_TIMEOUT_MS = 10_000;
 
 test.describe('Login', () => {
   test('redirects to /login when visiting the create page unauthenticated', async ({ page }) => {
-    await page.goto('/state/new');
+    await page.goto('/en/state/new');
 
-    await expect(page).toHaveURL('/login', { timeout: REDIRECT_TIMEOUT_MS });
+    await expect(page).toHaveURL('/en/login', { timeout: REDIRECT_TIMEOUT_MS });
   });
 
   test('redirects to /login when visiting the edit page unauthenticated', async ({ page }) => {
-    await page.goto('/state/1/edit');
+    await page.goto('/en/state/1/edit');
 
-    await expect(page).toHaveURL('/login', { timeout: REDIRECT_TIMEOUT_MS });
+    await expect(page).toHaveURL('/en/login', { timeout: REDIRECT_TIMEOUT_MS });
   });
 
   test('state list stays accessible without authentication', async ({ page }) => {
@@ -35,7 +35,7 @@ test.describe('Login', () => {
 
     await page.goto('/');
 
-    await expect(page).toHaveURL('/');
+    await expect(page).toHaveURL('/en');
   });
 
   test('valid login stores the token and navigates to the list', async ({ page }) => {
@@ -48,12 +48,12 @@ test.describe('Login', () => {
       }),
     );
 
-    await page.goto('/login');
+    await page.goto('/en/login');
     await page.locator('#username').fill('admin');
     await page.locator('#password').fill('correct-password');
     await page.getByRole('button', { name: 'Log in' }).click();
 
-    await expect(page).toHaveURL('/');
+    await expect(page).toHaveURL('/en');
     const token = await page.evaluate(() => localStorage.getItem('estado_jwt'));
     expect(token).toBe('test-token');
   });
@@ -67,13 +67,13 @@ test.describe('Login', () => {
       }),
     );
 
-    await page.goto('/login');
+    await page.goto('/en/login');
     await page.locator('#username').fill('admin');
     await page.locator('#password').fill('wrong-password');
     await page.getByRole('button', { name: 'Log in' }).click();
 
     await expect(errorAlert(page)).toContainText('Invalid username or password.');
-    await expect(page).toHaveURL('/login');
+    await expect(page).toHaveURL('/en/login');
   });
 
   test('an expired token is treated as unauthenticated', async ({ page }) => {
@@ -87,8 +87,8 @@ test.describe('Login', () => {
       ],
     );
 
-    await page.goto('/state/new');
+    await page.goto('/en/state/new');
 
-    await expect(page).toHaveURL('/login', { timeout: REDIRECT_TIMEOUT_MS });
+    await expect(page).toHaveURL('/en/login', { timeout: REDIRECT_TIMEOUT_MS });
   });
 });

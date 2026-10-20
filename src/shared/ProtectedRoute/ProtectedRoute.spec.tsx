@@ -1,6 +1,7 @@
-import { act, render, screen } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 import { ProtectedRoute } from './ProtectedRoute';
 import { clearToken, setToken } from '../../lib/tokenStorage';
+import { renderWithProviders } from '../../testUtils';
 
 // Deviation from the Vite original: that version rendered ProtectedRoute
 // inside a react-router createMemoryRouter with a real '/login' route, and
@@ -11,6 +12,8 @@ import { clearToken, setToken } from '../../lib/tokenStorage';
 const replace = vi.fn();
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace }),
+  redirect: vi.fn(),
+  permanentRedirect: vi.fn(),
 }));
 
 function tokenWithExpiration(exp: number): string {
@@ -32,7 +35,7 @@ describe('ProtectedRoute', () => {
     vi.useFakeTimers();
     setToken(tokenWithExpiration(Math.floor(Date.now() / 1000) + 1));
 
-    render(
+    renderWithProviders(
       <ProtectedRoute>
         <div>Protected content</div>
       </ProtectedRoute>,
@@ -43,24 +46,24 @@ describe('ProtectedRoute', () => {
       vi.advanceTimersByTime(6000);
     });
 
-    expect(replace).toHaveBeenCalledWith('/login');
+    expect(replace).toHaveBeenCalledWith('/en/login');
   });
 
   it('redirects to /login when there is no valid token', () => {
-    render(
+    renderWithProviders(
       <ProtectedRoute>
         <div>Protected content</div>
       </ProtectedRoute>,
     );
 
-    expect(replace).toHaveBeenCalledWith('/login');
+    expect(replace).toHaveBeenCalledWith('/en/login');
     expect(screen.queryByText('Protected content')).not.toBeInTheDocument();
   });
 
   it('renders the protected route when the token is valid', () => {
     setToken(tokenWithExpiration(Math.floor(Date.now() / 1000) + 3600));
 
-    render(
+    renderWithProviders(
       <ProtectedRoute>
         <div>Protected content</div>
       </ProtectedRoute>,

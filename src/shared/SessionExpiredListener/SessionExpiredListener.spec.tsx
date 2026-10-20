@@ -1,10 +1,12 @@
-import { render } from '@testing-library/react';
 import { SessionExpiredListener } from './SessionExpiredListener';
 import { notifySessionExpired } from '../../lib/sessionExpired';
+import { renderWithProviders } from '../../testUtils';
 
 const replace = vi.fn();
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace }),
+  redirect: vi.fn(),
+  permanentRedirect: vi.fn(),
 }));
 
 describe('SessionExpiredListener', () => {
@@ -13,15 +15,15 @@ describe('SessionExpiredListener', () => {
   });
 
   it('navigates to /login when the session expires', () => {
-    render(<SessionExpiredListener />);
+    renderWithProviders(<SessionExpiredListener />);
 
     notifySessionExpired();
 
-    expect(replace).toHaveBeenCalledWith('/login');
+    expect(replace).toHaveBeenCalledWith('/en/login');
   });
 
   it('stops navigating after being unmounted', () => {
-    const { unmount } = render(<SessionExpiredListener />);
+    const { unmount } = renderWithProviders(<SessionExpiredListener />);
 
     unmount();
     notifySessionExpired();
@@ -30,7 +32,7 @@ describe('SessionExpiredListener', () => {
   });
 
   it('renders nothing', () => {
-    const { container } = render(<SessionExpiredListener />);
+    const { container } = renderWithProviders(<SessionExpiredListener />);
 
     expect(container).toBeEmptyDOMElement();
   });

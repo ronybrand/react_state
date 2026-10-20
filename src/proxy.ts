@@ -1,4 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import createMiddleware from 'next-intl/middleware';
+import { NextRequest } from 'next/server';
+import { routing } from './i18n/routing';
+
+const handleI18nRouting = createMiddleware(routing);
 
 // Per-request nonce CSP, as documented at
 // https://nextjs.org/docs/app/guides/content-security-policy.
@@ -41,7 +45,8 @@ export function proxy(request: NextRequest) {
   requestHeaders.set('x-nonce', nonce);
   requestHeaders.set('Content-Security-Policy', csp);
 
-  const response = NextResponse.next({ request: { headers: requestHeaders } });
+  const requestWithCsp = new NextRequest(request, { headers: requestHeaders });
+  const response = handleI18nRouting(requestWithCsp);
   response.headers.set('Content-Security-Policy', csp);
   return response;
 }

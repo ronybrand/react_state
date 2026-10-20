@@ -1,7 +1,7 @@
 'use client';
 
 import { forwardRef, useImperativeHandle, useRef } from 'react';
-import { useTranslation } from '../../i18n/TranslationProvider';
+import { useTranslations } from 'next-intl';
 
 export interface ConfirmDialogHandle {
   open(): void;
@@ -18,7 +18,7 @@ interface ConfirmDialogProps {
 // event, implicit role) without needing a modal library just for this.
 export const ConfirmDialog = forwardRef<ConfirmDialogHandle, ConfirmDialogProps>(
   function ConfirmDialog({ message, onConfirm, onCancel }, ref) {
-    const { t } = useTranslation();
+    const t = useTranslations();
     const dialogRef = useRef<HTMLDialogElement>(null);
 
     useImperativeHandle(ref, () => ({

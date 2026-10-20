@@ -1,7 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { ProtectedRoute } from '../../shared/ProtectedRoute/ProtectedRoute';
+import { ProtectedRoute } from '@/shared/ProtectedRoute/ProtectedRoute';
 
 // Only mutating pages require a token, matching the backend's GET-is-public
 // decision (see its ADR 0017) - the list stays outside this route group.

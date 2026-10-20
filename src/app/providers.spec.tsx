@@ -1,6 +1,7 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { Providers } from './providers';
-import { notifySessionExpired } from '../lib/sessionExpired';
+import { notifySessionExpired } from '@/lib/sessionExpired';
+import { renderWithProviders } from '@/testUtils';
 
 vi.mock('next/link', () => ({
   default: ({ href, children, ...rest }: React.ComponentProps<'a'>) => (
@@ -13,6 +14,9 @@ vi.mock('next/link', () => ({
 const replace = vi.fn();
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace }),
+  usePathname: () => '/en',
+  redirect: vi.fn(),
+  permanentRedirect: vi.fn(),
 }));
 
 describe('Providers (app/providers.tsx)', () => {
@@ -21,7 +25,7 @@ describe('Providers (app/providers.tsx)', () => {
   });
 
   it('renders its children inside the app chrome', () => {
-    render(
+    renderWithProviders(
       <Providers>
         <p>page content</p>
       </Providers>,
@@ -32,7 +36,7 @@ describe('Providers (app/providers.tsx)', () => {
   });
 
   it('wires up the session-expired listener, navigating to /login on a 401', () => {
-    render(
+    renderWithProviders(
       <Providers>
         <p>page content</p>
       </Providers>,
@@ -40,6 +44,6 @@ describe('Providers (app/providers.tsx)', () => {
 
     notifySessionExpired();
 
-    expect(replace).toHaveBeenCalledWith('/login');
+    expect(replace).toHaveBeenCalledWith('/en/login');
   });
 });

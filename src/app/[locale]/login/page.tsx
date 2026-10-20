@@ -2,20 +2,20 @@
 
 import { useRef } from 'react';
 import { useForm } from 'react-hook-form';
-import { useRouter } from 'next/navigation';
-import { FormPage } from '../../shared/FormPage/FormPage';
-import { useErrorMessage } from '../../shared/ErrorMessage/useErrorMessage';
-import { useLogin } from '../../hooks/useLogin';
-import { extractRequestId } from '../../lib/extractRequestId';
-import { apiErrorMessage } from '../../lib/apiErrorMessage';
-import type { LoginCredentials } from '../../services/authService';
-import { useTranslation } from '../../i18n/TranslationProvider';
+import { useTranslations } from 'next-intl';
+import { useRouter } from '@/i18n/navigation';
+import { FormPage } from '@/shared/FormPage/FormPage';
+import { useErrorMessage } from '@/shared/ErrorMessage/useErrorMessage';
+import { useLogin } from '@/hooks/useLogin';
+import { extractRequestId } from '@/lib/extractRequestId';
+import { apiErrorMessage } from '@/lib/apiErrorMessage';
+import type { LoginCredentials } from '@/services/authService';
 
 const inputClass =
   'col-span-12 rounded border px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand aria-invalid:border-danger';
 
 export default function Login() {
-  const { t } = useTranslation();
+  const t = useTranslations();
   const router = useRouter();
   const login = useLogin();
   const { error, requestId, setError } = useErrorMessage();

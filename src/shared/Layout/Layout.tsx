@@ -1,20 +1,21 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { Footer } from '../Footer/Footer';
-import { Icon } from '../Icon/Icon';
-import { authService } from '../../services/authService';
-import { useTokenValid } from '../../hooks/useTokenValid';
-import { useTranslation } from '../../i18n/TranslationProvider';
+import { useLocale, useTranslations } from 'next-intl';
+import { Link, usePathname, useRouter } from '@/i18n/navigation';
+import { Footer } from '@/shared/Footer/Footer';
+import { Icon } from '@/shared/Icon/Icon';
+import { authService } from '@/services/authService';
+import { useTokenValid } from '@/hooks/useTokenValid';
 
 // Vite original wrapped react-router's <Outlet/> - Next's App Router has no
 // nested-route outlet, so this now takes `children` and is rendered from
 // app/layout.tsx around {children} directly.
 export function Layout({ children }: { children: ReactNode }) {
   const router = useRouter();
-  const { lang, setLang, t } = useTranslation();
+  const pathname = usePathname();
+  const locale = useLocale();
+  const t = useTranslations();
   // Hydration-safe (see useTokenValid): the logout button only appears once
   // the client knows the token state, never in the server HTML.
   const loggedIn = useTokenValid() === true;
@@ -36,9 +37,9 @@ export function Layout({ children }: { children: ReactNode }) {
             aria-label={t('languageSwitchLabel')}
             title={t('languageSwitchLabel')}
             className="cursor-pointer text-sm font-semibold text-white"
-            onClick={() => setLang(lang === 'pt' ? 'en' : 'pt')}
+            onClick={() => router.replace(pathname, { locale: locale === 'pt' ? 'en' : 'pt' })}
           >
-            {lang === 'pt' ? 'EN' : 'PT'}
+            {locale === 'pt' ? 'EN' : 'PT'}
           </button>
           {loggedIn && (
             <button
